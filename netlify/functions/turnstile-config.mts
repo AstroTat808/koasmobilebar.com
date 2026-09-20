@@ -3,7 +3,7 @@ export default async (req) => {
     return Response.json({ error: 'Method not allowed' }, { status: 405 });
   }
 
-  const siteKey = Netlify.env.get('TURNSTILE_SITE_KEY');
+  const siteKey = Netlify.env.get('TURNSTILE_SITE_KEY') || Netlify.env.get('PUBLIC_TURNSTILE_SITE_KEY');
   if (!siteKey) {
     return Response.json({ error: 'Turnstile is not configured' }, { status: 503 });
   }
