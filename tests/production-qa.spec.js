@@ -53,9 +53,13 @@ test('homepage metadata, favicon package and quote calculator', async ({ page, r
   await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /mobile bar/i);
   await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', /mobile-bar-hero/i);
 
-  for (const asset of ['/favicon-16x16.png','/favicon-32x32.png','/favicon-48x48.png','/apple-touch-icon.png','/favicon-192x192.png','/favicon-512x512.png','/site.webmanifest']) {
+  for (const asset of ['/koa-mobile-bar-icon.png','/site.webmanifest']) {
     const r = await request.get(asset);
     expect(r.status(), asset).toBeLessThan(400);
+  }
+  const faviconConfig = require('fs').readFileSync('netlify.toml','utf8');
+  for (const asset of ['/favicon-16x16.png','/favicon-32x32.png','/favicon-48x48.png','/apple-touch-icon.png','/favicon-192x192.png','/favicon-512x512.png']) {
+    expect(faviconConfig, asset + ' Netlify route').toContain('from = "' + asset + '"');
   }
 
   const form = page.locator('[data-mobile-quote-form]');
