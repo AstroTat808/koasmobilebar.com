@@ -1,6 +1,17 @@
 [build]
   publish = "."
 
+[[redirects]]
+  from = "https://www.koasmobilebar.com/*"
+  to = "https://koasmobilebar.com/:splat"
+  status = 301
+  force = true
+
+[[headers]]
+  for = "/thank-you.html"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow, noarchive"
+
 [[headers]]
   for = "/*"
   [headers.values]
