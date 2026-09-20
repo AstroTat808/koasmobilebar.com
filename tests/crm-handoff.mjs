@@ -1,6 +1,6 @@
 const endpoint = 'https://www.koasevents.com/api/crm/inquiries';
 const suffix = Date.now().toString(36);
-const expectedTotal = 2417.50;
+const expectedTotal = 3563.50;
 const payload = {
   formName: 'koa-mobile-bar-qa',
   honeypot: '',
@@ -16,7 +16,7 @@ const payload = {
     service: 'mobile-bar',
     eventType: 'corporate',
     guestCount: 125,
-    budget: '$2,000-$3,000',
+    budget: '$3,000-$4,000',
     mobileBarPackage: 'mobile-big-island',
     eventLocation: 'Hilo, HI',
     priorities: 'QA integration test',
@@ -30,10 +30,13 @@ const payload = {
     glasswareCount: 125,
     estimatedTotal: expectedTotal,
     estimateLineItems: [
-      { id:'package', description:'Big Island Package', quantity:1, unitPrice:1800, amount:1800, custom:false },
+      { id:'package', description:'Big Island Package', quantity:1, unitPrice:2500, amount:2500, custom:false },
       { id:'extra-guests', description:'Additional guests over 100', quantity:25, unitPrice:8, amount:200, custom:false },
+      { id:'extra-hours', description:'Additional service hours over 4', quantity:1, unitPrice:200, amount:200, custom:false },
       { id:'bartender-labor', description:'Bartender labor', quantity:2, unitPrice:200, amount:400, custom:false },
-      { id:'travel', description:'Travel beyond 20-mile included radius (round trip)', quantity:24, unitPrice:1.5, amount:36, custom:false }
+      { id:'travel', description:'Travel beyond 20-mile included radius (round trip)', quantity:24, unitPrice:1.5, amount:36, custom:false },
+      { id:'gratuity', description:'Bartender gratuity (10% + tip jar)', quantity:1, unitPrice:40, amount:40, custom:false },
+      { id:'glassware', description:'Glassware', quantity:125, unitPrice:1.5, amount:187.5, custom:false }
     ],
     customAddOns: ['Champagne wall','Acrylic menu'],
     calculatorVersion: 'mobile-bar-v1'
