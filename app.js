@@ -36,6 +36,8 @@ function calculate(){
  const total=lines.reduce((sum,line)=>sum+Number(line.amount||0),0);
  const custom=customSelections();
  const totalEl=form.querySelector('[data-estimate-total]');if(totalEl){const next=packageChosen?money(total):'Select a package';if(totalEl.textContent!==next){totalEl.textContent=next;const panel=totalEl.closest('.estimate-panel');if(panel){panel.classList.remove('is-updated');requestAnimationFrame(()=>panel.classList.add('is-updated'));setTimeout(()=>panel.classList.remove('is-updated'),420)}}}
+ const mobileTotalEl=form.querySelector('[data-mobile-estimate-total]');if(mobileTotalEl)mobileTotalEl.textContent=packageChosen?money(total):'Select a package';
+ const mobileDock=form.querySelector('.mobile-estimate-dock');if(mobileDock)mobileDock.classList.toggle('has-package',packageChosen);
  const customEl=form.querySelector('[data-estimate-custom]');if(customEl)customEl.textContent=!packageChosen?'Choose Oahu, Maui, Big Island or Custom to begin your estimate.':custom.length?'Plus custom pricing for: '+custom.join(', '):packageId==='mobile-custom'?'Package/service base price requires custom review.':'';
  const linesEl=form.querySelector('[data-estimate-lines]');if(linesEl){linesEl.innerHTML='';lines.filter(line=>line.amount>0).forEach(line=>{const row=document.createElement('div');const label=document.createElement('span');label.textContent=line.description;const amount=document.createElement('strong');amount.textContent=money(line.amount);row.append(label,amount);linesEl.appendChild(row)})}
  form.elements['estimated-total'].value=packageChosen?String(Math.round(total*100)/100):'';

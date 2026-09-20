@@ -248,3 +248,126 @@ html,body{max-width:100%;overflow-x:hidden}
 .form-note[data-state="ready"]{color:#476a59}
 .form-note[data-state="error"]{color:#9a3f2f}
 @media(max-width:420px){.turnstile-wrap{overflow:hidden}}
+
+/* Mobile responsive closure — 2026-09-20 */
+.inquiry>*{min-width:0}
+.inquiry form,.quote-calculator,.calculator-fields,.calculator-addons,.estimate-panel{min-width:0;max-width:100%}
+@media(max-width:900px){
+  .inquiry{grid-template-columns:minmax(0,1fr);gap:42px}
+  .inquiry-copy{position:static}
+}
+@media(max-width:600px){
+  .inquiry{padding-left:6vw;padding-right:6vw;gap:34px}
+  .inquiry form{width:100%;padding:20px}
+  .quote-calculator{width:100%;margin-left:0;margin-right:0;padding:18px}
+  .calculator-head h3{font-size:clamp(1.75rem,9vw,2.2rem)}
+  .contact a{overflow-wrap:anywhere}
+  .inquiry form>.btn[type=submit]{width:100%}
+}
+@media(max-width:360px){
+  .site-header{gap:10px}
+  .brand-medallion,.site-header.scrolled .brand-medallion{width:44px;height:44px;flex-basis:44px}
+  .brand-name,.site-header.scrolled .brand-name{font-size:.94rem}
+  .menu{padding:8px 11px;font-size:.72rem}
+}
+
+/* Mobile visual audit + premium quote experience — 2026-09-20 */
+.quote-progress{display:flex;align-items:center;gap:8px;margin:18px 0 2px;color:#68736d;font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em}
+.quote-progress span{display:flex;align-items:center;gap:7px}
+.quote-progress span:not(:last-child):after{content:"";width:20px;height:1px;margin-left:2px;background:rgba(8,47,37,.18)}
+.quote-progress b{display:grid;width:22px;height:22px;place-items:center;border:1px solid rgba(169,101,54,.35);border-radius:50%;color:#92552c;font-size:.62rem}
+.mobile-estimate-dock{display:none}
+@media(max-width:600px){
+  .hero-copy,.intro,.events,.packages,.inclusions,.staffing,.addons-section,.gallery,.flow,.faq,.inquiry,.areas-home,.content-section,.related-section,.gallery-page,.service-index,.inline-cta{padding-left:6vw;padding-right:6vw}
+  .intro,.events,.packages,.inclusions,.staffing,.addons-section,.gallery,.flow,.faq,.inquiry,.areas-home,.content-section,.related-section,.gallery-page,.service-index{padding-top:clamp(48px,14vw,60px);padding-bottom:clamp(48px,14vw,60px)}
+  .section-head{margin-bottom:32px}
+  .eyebrow{margin-bottom:12px;font-size:.68rem;line-height:1.45}
+  .intro h2,.events h2,.section-head h2,.split-copy h2,.flow h2,.inquiry h2,.staffing-copy h2{font-size:clamp(2.15rem,10.8vw,2.75rem);line-height:1.02}
+  .event-grid{margin-top:30px}
+  .event-grid article{padding:24px}
+  .event-grid h3{margin:20px 0 8px;font-size:1.65rem}
+  .event-grid p{margin-bottom:10px}
+  .package{padding:24px}
+  .package[data-package-id]::after{top:16px;right:16px;width:32px;height:32px}
+  .package .tag{padding-right:44px}
+  .package .price{margin:12px 0 20px}
+  .package .price strong{font-size:2.65rem}
+  .package h3{font-size:1.55rem}
+  .package ul{margin:18px 0 24px}
+  .package .package-request{min-height:44px;width:100%;justify-content:space-between}
+  .package-note{gap:7px}
+  .inclusion-grid article{padding:22px;min-height:0}
+  .inclusion-grid h3{margin:16px 0 8px;font-size:1.25rem}
+  .staffing-cards{gap:10px}
+  .staffing-cards article{padding:24px}
+  .staffing-cards .mini-label{margin-bottom:16px}
+  .addon-grid article{padding:20px;min-height:92px;gap:12px}
+  .split-image{min-height:clamp(360px,112vw,460px)}
+  .split-copy{padding:56px 6vw 60px}
+  .gallery-grid{grid-auto-rows:clamp(280px,88vw,340px)}
+  .areas-home .section-head{margin-bottom:28px}
+  .area-links a{padding:24px}
+  .area-links strong{font-size:1.8rem}
+  .steps{margin-top:30px}
+  .steps>div{margin-right:0;padding:24px 0;border-right:0;border-bottom:1px solid var(--line)}
+  .steps>div:last-child{border-bottom:0}
+  .faq details{padding:18px 0}
+  .faq summary{font-size:1.2rem;line-height:1.3}
+  .page-hero{padding:48px 6vw;gap:30px}
+  .page-hero h1{font-size:clamp(2.7rem,13vw,3.8rem)}
+  .page-hero img{height:clamp(280px,78vw,380px)}
+  .page-hero .actions,.inline-cta .actions{width:100%}
+  .page-hero .actions .btn,.inline-cta .btn{width:100%}
+  .related-grid a,.service-card,.feature-list div{padding:20px}
+  .gallery-card img{height:clamp(270px,84vw,320px)}
+  footer{padding:36px 6vw 22px}
+  .footer-brand-lockup{align-items:center}
+  .footer-brand p{margin-bottom:0}
+
+  .inquiry{gap:28px}
+  .inquiry-copy>p:not(.eyebrow,.contact){font-size:1rem;line-height:1.55}
+  .quote-points{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:18px 0 22px}
+  .quote-points span{display:flex;align-items:center;min-height:42px;padding:8px 9px;font-size:.62rem;line-height:1.35}
+  .quote-points span:first-child{grid-column:1/-1}
+  .contact{margin-bottom:0}
+  .inquiry form{padding:16px;border-radius:8px;box-shadow:0 22px 55px rgba(0,0,0,.16)}
+  .quote-calculator{padding:16px;border-radius:7px}
+  .calculator-head{gap:10px;padding-bottom:16px}
+  .calculator-head h3{font-size:clamp(1.85rem,9.6vw,2.25rem)}
+  .calculator-head>p{font-size:.8rem;line-height:1.45}
+  .quote-progress{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:14px 0 4px;padding:2px 0 4px;white-space:normal}
+  .quote-progress span{min-width:0;gap:5px;font-size:.58rem;line-height:1.2}
+  .quote-progress span:not(:last-child):after{display:none}
+  .quote-progress b{width:20px;height:20px;flex:0 0 20px}
+  .mobile-estimate-dock{position:sticky;top:76px;z-index:6;display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 12px;margin:12px 0 16px;padding:11px 13px;border:1px solid rgba(224,173,129,.25);border-radius:7px;background:rgba(8,47,37,.96);color:white;box-shadow:0 12px 28px rgba(8,47,37,.2);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+  .mobile-estimate-dock span{font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:#e4b184}
+  .mobile-estimate-dock strong{grid-column:2;grid-row:1/3;font:400 1.3rem/1 Georgia,serif;white-space:nowrap}
+  .mobile-estimate-dock small{font-size:.64rem;color:rgba(255,255,255,.62)}
+  .mobile-estimate-dock.has-package{border-color:rgba(224,173,129,.48)}
+  .calculator-fields{margin-top:10px;gap:2px}
+  .calculator-fields label{margin-bottom:12px;padding:0}
+  .calculator-fields input,.calculator-fields select{min-height:54px;margin-top:6px;padding:13px 12px;font-size:16px}
+  .calculator-fields label small{margin-top:5px}
+  .calculator-addons{margin-top:6px;padding-top:18px;gap:8px}
+  .calculator-addons legend{font-size:1.08rem}
+  .calculator-addons label{min-height:54px;padding:12px;font-size:.8rem;align-items:center;flex-wrap:nowrap}
+  .calculator-addons input[type="checkbox"]{width:20px;height:20px;flex:0 0 20px}
+  .calculator-addons span{width:auto;margin-left:auto;text-align:right}
+  .estimate-panel{margin-top:18px;padding:18px;gap:14px}
+  .estimate-panel [data-estimate-total]{font-size:clamp(2.35rem,12vw,3.2rem)}
+  .estimate-lines>div{gap:12px}
+  .client-details-head{margin:28px 0 18px;padding-top:24px}
+  .two{gap:0}
+  .inquiry form>label,.two label{margin-bottom:14px}
+  .inquiry form input,.inquiry form select,.inquiry form textarea{font-size:16px}
+  .turnstile-wrap{margin-top:10px}
+  .form-note{line-height:1.45}
+}
+@media(max-width:360px){
+  .quote-points{grid-template-columns:1fr}
+  .quote-points span:first-child{grid-column:auto}
+  .mobile-estimate-dock{top:68px;padding:10px 11px}
+  .mobile-estimate-dock strong{font-size:1.14rem}
+  .inquiry form,.quote-calculator{padding:14px}
+}
+

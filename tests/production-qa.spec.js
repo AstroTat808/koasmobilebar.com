@@ -139,6 +139,160 @@ test('mobile navigation opens, closes and remains usable', async ({ page }, test
   await expect(page.locator('#nav')).not.toHaveClass(/open/);
 });
 
+
+test('mobile quote layout stays stacked and inside the viewport', async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.startsWith('mobile-'), 'mobile-only responsive audit');
+
+  for (const width of [320, 390, 430]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/', { waitUntil: 'networkidle' });
+
+    const inquiry = page.locator('#inquire');
+    await inquiry.scrollIntoViewIfNeeded();
+
+    const metrics = await page.evaluate(() => {
+      const viewportWidth = document.documentElement.clientWidth;
+      const copy = document.querySelector('#inquire .inquiry-copy').getBoundingClientRect();
+      const form = document.querySelector('#inquire form').getBoundingClientRect();
+      const calculator = document.querySelector('#inquire .quote-calculator').getBoundingClientRect();
+      const brand = document.querySelector('.site-header .brand').getBoundingClientRect();
+      const menu = document.querySelector('.site-header .menu').getBoundingClientRect();
+
+      const candidates = [...document.querySelectorAll(
+        '#inquire h2,#inquire h3,#inquire p,#inquire a,#inquire button,#inquire input,#inquire select,#inquire textarea,#inquire label,#inquire form,#inquire .quote-calculator,#inquire .estimate-panel'
+      )];
+
+      const clipped = candidates.flatMap(el => {
+        if (el.closest('.hidden')) return [];
+        const style = getComputedStyle(el);
+        const rect = el.getBoundingClientRect();
+        if (style.display === 'none' || style.visibility === 'hidden' || rect.width < 1 || rect.height < 1) return [];
+        if (rect.left < -2 || rect.right > viewportWidth + 2) {
+          return [{
+            element: el.tagName.toLowerCase() + (el.className ? '.' + String(el.className).trim().replace(/\s+/g, '.') : ''),
+            left: Math.round(rect.left * 10) / 10,
+            right: Math.round(rect.right * 10) / 10,
+            viewportWidth
+          }];
+        }
+        return [];
+      });
+
+      return {
+        copyLeft: copy.left,
+        copyBottom: copy.bottom,
+        formLeft: form.left,
+        formTop: form.top,
+        formRight: form.right,
+        calculatorRight: calculator.right,
+        brandRight: brand.right,
+        menuLeft: menu.left,
+        menuRight: menu.right,
+        viewportWidth,
+        clipped
+      };
+    });
+
+    expect(metrics.formTop, 'quote form should stack below intro at ' + width + 'px').toBeGreaterThan(metrics.copyBottom + 12);
+    expect(Math.abs(metrics.formLeft - metrics.copyLeft), 'stacked columns align at ' + width + 'px').toBeLessThanOrEqual(2);
+    expect(metrics.formRight, 'form fits viewport at ' + width + 'px').toBeLessThanOrEqual(metrics.viewportWidth + 2);
+    expect(metrics.calculatorRight, 'calculator fits viewport at ' + width + 'px').toBeLessThanOrEqual(metrics.viewportWidth + 2);
+    expect(metrics.brandRight, 'brand must not collide with menu at ' + width + 'px').toBeLessThanOrEqual(metrics.menuLeft - 4);
+    expect(metrics.menuRight, 'menu fits viewport at ' + width + 'px').toBeLessThanOrEqual(metrics.viewportWidth + 2);
+    expect(metrics.clipped, 'no clipped inquiry content at ' + width + 'px').toEqual([]);
+  }
+});
+
+
+test('site-wide mobile visual audit at 320, 390 and 430', async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.startsWith('mobile-'), 'mobile-only site audit');
+  test.setTimeout(120000);
+
+  for (const width of [320, 390, 430]) {
+    await page.setViewportSize({ width, height: 900 });
+
+    for (const path of pages) {
+      await page.goto(path, { waitUntil: 'domcontentloaded' });
+      await page.waitForLoadState('load');
+
+      const audit = await page.evaluate(() => {
+        const viewportWidth = document.documentElement.clientWidth;
+        const visible = el => {
+          if (el.closest('.hidden') || el.closest('[hidden]')) return false;
+          const style = getComputedStyle(el);
+          const rect = el.getBoundingClientRect();
+          return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 1 && rect.height > 1;
+        };
+
+        const content = [...document.querySelectorAll('main h1,main h2,main h3,main p,main a,main button,main input,main select,main textarea,main label,main summary,main article,main figure,main form,footer a,footer p')].filter(visible);
+        const clipped = content.flatMap(el => {
+          const intentionalScroller = el.closest('.filters');
+          if (intentionalScroller) {
+            const scrollerStyle = getComputedStyle(intentionalScroller);
+            const horizontallyScrollable = /auto|scroll/.test(scrollerStyle.overflowX) && intentionalScroller.scrollWidth > intentionalScroller.clientWidth;
+            if (horizontallyScrollable) return [];
+          }
+          const rect = el.getBoundingClientRect();
+          if (rect.left < -2 || rect.right > viewportWidth + 2) {
+            return [{
+              tag: el.tagName.toLowerCase(),
+              className: String(el.className || ''),
+              left: Math.round(rect.left),
+              right: Math.round(rect.right),
+              viewportWidth
+            }];
+          }
+          return [];
+        });
+
+        const touchSelectors = '.menu,.btn,.filter-btn,.package-request,input:not([type="checkbox"]):not([type="radio"]),select,textarea,.calculator-addons label';
+        const smallTargets = [...document.querySelectorAll(touchSelectors)].filter(visible).flatMap(el => {
+          const rect = el.getBoundingClientRect();
+          if (rect.height < 42 || rect.width < 42) {
+            return [{
+              tag: el.tagName.toLowerCase(),
+              className: String(el.className || ''),
+              width: Math.round(rect.width),
+              height: Math.round(rect.height)
+            }];
+          }
+          return [];
+        });
+
+        const header = document.querySelector('.site-header');
+        let headerCollision = null;
+        if (header) {
+          const brand = header.querySelector('.brand');
+          const menu = header.querySelector('.menu');
+          if (brand && menu && visible(brand) && visible(menu)) {
+            const b = brand.getBoundingClientRect();
+            const m = menu.getBoundingClientRect();
+            if (b.right > m.left - 4) headerCollision = { brandRight: Math.round(b.right), menuLeft: Math.round(m.left) };
+          }
+        }
+
+        return { clipped, smallTargets, headerCollision };
+      });
+
+      expect(audit.clipped, path + ' clipped content at ' + width + 'px').toEqual([]);
+      expect(audit.smallTargets, path + ' undersized primary controls at ' + width + 'px').toEqual([]);
+      expect(audit.headerCollision, path + ' header collision at ' + width + 'px').toBeNull();
+    }
+  }
+});
+
+test('mobile live estimate stays synchronized with full estimate', async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.startsWith('mobile-'), 'mobile-only quote interaction');
+  await page.goto('/', { waitUntil: 'networkidle' });
+  const form=page.locator('[data-mobile-quote-form]');
+  await expect(form.locator('[data-mobile-estimate-total]')).toHaveText('Select a package');
+  await form.locator('select[name="package"]').selectOption('mobile-maui');
+  await expect(form.locator('[data-mobile-estimate-total]')).toHaveText(await form.locator('[data-estimate-total]').innerText());
+  await form.locator('input[name="guest-count"]').fill('125');
+  await expect(form.locator('[data-mobile-estimate-total]')).toHaveText(await form.locator('[data-estimate-total]').innerText());
+  await expect(form.locator('.mobile-estimate-dock')).toHaveClass(/has-package/);
+});
+
 test('visual reference screenshots', async ({ page }, testInfo) => {
   for (const path of pages) {
     await page.goto(path, { waitUntil: 'networkidle' });
@@ -154,7 +308,7 @@ const fs = require('fs');
 const visualBaselineDir = 'tests/production-qa.spec.js-snapshots';
 
 test.describe('visual regression @visual', () => {
-  const baselineVersion = 'v2.3';
+  const baselineVersion = 'v2.4';
   const baselineMarker = visualBaselineDir + '/.baseline-version';
   const approved = fs.existsSync(visualBaselineDir) && fs.existsSync(baselineMarker) && fs.readFileSync(baselineMarker,'utf8').trim() === baselineVersion;
   test.skip(!approved && process.env.BOOTSTRAP_VISUAL !== '1', 'Approved visual baselines have not been bootstrapped for ' + baselineVersion + '.');
