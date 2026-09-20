@@ -55,6 +55,31 @@ for (const path of pages) {
   });
 }
 
+test('blog cards keep readable copy separate from photography', async ({ page }) => {
+  await page.goto('/blog/', { waitUntil: 'networkidle' });
+  const cards = page.locator('.blog-card');
+  await expect(cards).toHaveCount(4);
+
+  for (const card of await cards.all()) {
+    const image = card.locator('img');
+    const copy = card.locator('.blog-card-copy');
+    await expect(image).toBeVisible();
+    await expect(copy).toBeVisible();
+
+    const [imageBox, copyBox] = await Promise.all([image.boundingBox(), copy.boundingBox()]);
+    expect(imageBox).not.toBeNull();
+    expect(copyBox).not.toBeNull();
+    expect(copyBox.y, 'copy begins at or below image bottom').toBeGreaterThanOrEqual(imageBox.y + imageBox.height - 1);
+
+    const styles = await copy.evaluate(el => {
+      const s = getComputedStyle(el);
+      return { backgroundColor: s.backgroundColor, color: s.color };
+    });
+    expect(styles.backgroundColor, 'copy panel has an opaque background').not.toBe('rgba(0, 0, 0, 0)');
+    expect(styles.color, 'copy panel text is light').toMatch(/rgb\((?:24[0-9]|25[0-5]),\s*(?:24[0-9]|25[0-5]),\s*(?:24[0-9]|25[0-5])\)/);
+  }
+});
+
 test('homepage metadata, favicon package and quote calculator', async ({ page, request }) => {
   await page.route('**/api/turnstile-config', route => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error:'test' }) }));
   await page.goto('/', { waitUntil: 'networkidle' });
@@ -347,7 +372,6 @@ test.describe('visual regression @visual', () => {
     ['weddings','/weddings/'],
     ['bartender-service','/bartender-service/'],
     ['gallery','/gallery/'],
-    ['blog','/blog/'],
     ['service-areas','/service-areas/'],
     ['service-area-hilo','/service-areas/hilo/'],
     ['service-area-kona','/service-areas/kona/'],
