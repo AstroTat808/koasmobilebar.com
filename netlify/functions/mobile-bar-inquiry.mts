@@ -69,7 +69,11 @@ function allowedHostname(hostname) {
 }
 
 function ingestSecret() {
-  return String(Netlify.env.get('KOA_MOBILE_BAR_INGEST_SECRET') || '').trim();
+  const dedicated = String(Netlify.env.get('KOA_MOBILE_BAR_INGEST_SECRET') || '').trim();
+  if (dedicated) return dedicated;
+
+  const turnstile = String(Netlify.env.get('TURNSTILE_SECRET_KEY') || '').trim();
+  return turnstile ? `koa-mobile-bar-ingest-v1:${turnstile}` : '';
 }
 
 function base64Url(bytes) {
