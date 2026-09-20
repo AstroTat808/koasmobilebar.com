@@ -1,0 +1,68 @@
+name: Production Visual QA
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: production-visual-qa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser-qa:
+    name: Browser QA
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm install
+      - run: npx playwright install --with-deps chromium
+      - name: Run responsive, accessibility, links, metadata and form QA
+        env:
+          BASE_URL: https://koasmobilebar.com
+        run: npm run qa:prod
+      - name: Upload visual QA artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-qa-${{ github.sha }}
+          path: |
+            playwright-report/
+            test-results/
+            qa-artifacts/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  lighthouse:
+    name: Lighthouse Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm install
+      - name: Run Lighthouse performance, accessibility and SEO gates
+        run: npm run qa:lighthouse
+
+  release-certification:
+    name: Release Certification
+    needs: [browser-qa, lighthouse]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Certify release
+        run: |
+          if [ "${{ needs.browser-qa.result }}" != "success" ] || [ "${{ needs.lighthouse.result }}" != "success" ]; then
+            echo "NO-GO: Production QA failed."
+            exit 1
+          fi
+          echo "GO: Browser QA and Lighthouse gates passed."
