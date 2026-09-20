@@ -1,9 +1,9 @@
 import type { Config } from '@netlify/functions';
 
 const PACKAGE_PRICES = {
-  'mobile-oahu': 1200,
-  'mobile-maui': 1500,
-  'mobile-big-island': 1800,
+  'mobile-oahu': 1500,
+  'mobile-maui': 2000,
+  'mobile-big-island': 2500,
   'mobile-custom': 0
 };
 
