@@ -113,3 +113,31 @@ test('visual reference screenshots', async ({ page }, testInfo) => {
     });
   }
 });
+
+
+const fs = require('fs');
+const visualBaselineDir = 'tests/production-qa.spec.js-snapshots';
+
+test.describe('visual regression @visual', () => {
+  test.skip(!fs.existsSync(visualBaselineDir), 'Approved visual baselines have not been bootstrapped yet.');
+
+  const visualPages = [
+    ['home','/'],
+    ['services','/services/'],
+    ['gallery','/gallery/'],
+    ['weddings','/weddings/'],
+    ['service-areas','/service-areas/']
+  ];
+
+  for (const [name,path] of visualPages) {
+    test(name + ' approved baseline', async ({ page }) => {
+      await page.goto(path, { waitUntil: 'networkidle' });
+      await page.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}' });
+      await expect(page).toHaveScreenshot(name + '.png', {
+        fullPage: true,
+        animations: 'disabled',
+        maxDiffPixelRatio: 0.005
+      });
+    });
+  }
+});
