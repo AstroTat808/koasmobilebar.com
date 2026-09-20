@@ -55,7 +55,6 @@ for (const path of pages) {
 }
 
 test('homepage metadata, favicon package and quote calculator', async ({ page, request }) => {
-  await page.route('**/api/turnstile-config', route => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error:'test' }) }));
   await page.goto('/', { waitUntil: 'networkidle' });
 
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://koasmobilebar.com/');
@@ -83,7 +82,6 @@ test('homepage metadata, favicon package and quote calculator', async ({ page, r
 
 
 test('inquiry requires Turnstile before submit', async ({ page }) => {
-  await page.route('**/api/turnstile-config', route => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error:'test' }) }));
   await page.goto('/', { waitUntil: 'networkidle' });
   const form = page.locator('[data-mobile-quote-form]');
   await expect(form.locator('[data-turnstile]')).toBeVisible();
@@ -154,7 +152,7 @@ const fs = require('fs');
 const visualBaselineDir = 'tests/production-qa.spec.js-snapshots';
 
 test.describe('visual regression @visual', () => {
-  const baselineVersion = 'v2.1';
+  const baselineVersion = 'v2.2';
   const baselineMarker = visualBaselineDir + '/.baseline-version';
   const approved = fs.existsSync(visualBaselineDir) && fs.existsSync(baselineMarker) && fs.readFileSync(baselineMarker,'utf8').trim() === baselineVersion;
   test.skip(!approved && process.env.BOOTSTRAP_VISUAL !== '1', 'Approved visual baselines have not been bootstrapped for ' + baselineVersion + '.');
