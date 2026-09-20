@@ -78,3 +78,40 @@
 .estimate-disclaimer{margin:14px 0 0;color:#6c756f;font-size:.72rem;line-height:1.5}
 .client-details-head{margin:36px 0 22px;padding-top:30px;border-top:1px solid var(--line)}
 @media(max-width:700px){.calculator-head{align-items:flex-start;flex-direction:column}.calculator-fields,.calculator-addons{grid-template-columns:1fr}.estimate-panel{grid-template-columns:1fr}.quote-calculator{padding:20px}}
+
+
+/* Production visual QA refinements — 2026-09-20 */
+:root{--gold:#c5a36d;--ivory:#fffdf8}
+body.menu-open,body.lightbox-open{overflow:hidden}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid #e4b184;outline-offset:3px}
+.site-header{min-height:88px;padding:10px 4.5vw;gap:26px}
+.site-header:not(.scrolled){padding-top:14px;padding-bottom:14px}
+.site-header.scrolled{min-height:72px;padding-top:7px;padding-bottom:7px}
+.brand{gap:13px;flex:0 1 auto}
+.brand-medallion{display:grid;width:68px;height:68px;flex:0 0 68px;place-items:center;border:1px solid rgba(197,163,109,.56);border-radius:999px;background:linear-gradient(145deg,#fffdf8,#efe5d2);box-shadow:0 10px 24px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.92);padding:4px;transition:width .36s ease,height .36s ease,flex-basis .36s ease,box-shadow .3s ease}
+.brand-medallion:after{content:"";position:absolute;pointer-events:none}
+.brand-medallion img{width:100%!important;height:100%!important;max-width:none;border-radius:999px;object-fit:contain;transition:none!important}
+.site-header.scrolled .brand-medallion{width:58px;height:58px;flex-basis:58px;box-shadow:0 7px 18px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.9)}
+.brand-name{font-size:1.34rem;line-height:.95}.brand-meta{font-size:.52rem;letter-spacing:.2em}
+.site-header.scrolled .brand-name{font-size:1.16rem}
+.site-header nav{gap:22px}.site-header nav a{min-height:44px;display:inline-flex;align-items:center}
+.nav-cta{padding:10px 17px;border-radius:999px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+.menu{min-height:44px;border-radius:999px;padding:9px 14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.hero-copy,.section-head,.intro>div,.split-copy,.inquiry-copy{max-width:72ch}
+.intro>div:last-child p,.section-head>p:last-child,.split-copy p,.faq details p,.content-section p,.page-hero p{max-width:68ch}
+.event-grid article,.package,.service-card,.related-grid a,.area-links a{backface-visibility:hidden}
+input,select,textarea{min-height:48px;border-radius:3px}
+textarea{min-height:132px;resize:vertical}
+.btn,.filter-btn,.nav-cta{min-height:44px}
+.inquiry form>.btn[type=submit]{margin-top:6px}
+.footer-brand-lockup{gap:15px}.footer-medallion{display:grid;width:76px;height:76px;flex:0 0 76px;place-items:center;border:1px solid rgba(197,163,109,.4);border-radius:999px;background:linear-gradient(145deg,#fffdf8,#efe5d2);box-shadow:0 10px 24px rgba(0,0,0,.2);padding:4px}.footer-medallion img{width:100%!important;height:100%!important;border-radius:999px;object-fit:contain}
+footer{padding-top:48px;padding-bottom:28px}footer>div{align-self:start}
+.lightbox{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.lightbox button{display:grid;place-items:center;width:48px;height:48px;right:22px;top:18px;border:1px solid rgba(255,255,255,.24);border-radius:999px;background:rgba(0,0,0,.32);cursor:pointer}
+.quote-calculator{border-radius:4px}.calculator-addons label{min-height:48px}.estimate-panel{border-radius:3px}
+@media(hover:hover){.event-grid article,.service-card,.related-grid a,.area-links a{transition:transform .25s ease,box-shadow .25s ease,background .25s ease}.service-card:hover,.related-grid a:hover{transform:translateY(-3px);box-shadow:0 18px 40px rgba(8,47,37,.09)}}
+@media(max-width:1100px){.site-header nav{gap:16px;font-size:.76rem}.brand-name{font-size:1.22rem}.brand-medallion{width:62px;height:62px;flex-basis:62px}}
+@media(max-width:900px){.site-header{min-height:76px;padding:8px 5vw!important}.brand-medallion,.site-header.scrolled .brand-medallion{width:58px;height:58px;flex-basis:58px}.site-header nav{max-height:calc(100svh - 76px);overflow:auto;padding:18px 5vw 24px;gap:4px;background:rgba(5,34,27,.98);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}.site-header nav a{width:100%;padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.07)}.site-header nav a:not(.nav-cta):after{display:none}.nav-cta{justify-content:center;margin-top:8px}.page-hero{padding-top:10vw}.inquiry{gap:4vw}.inquiry-copy{position:static}}
+@media(max-width:700px){.estimate-panel{gap:18px}.estimate-lines>div{font-size:.74rem}.calculator-addons label{align-items:flex-start;flex-wrap:wrap}.calculator-addons span{width:100%;margin-left:27px}}
+@media(max-width:600px){.site-header{min-height:68px}.brand{gap:9px}.brand-medallion,.site-header.scrolled .brand-medallion{width:50px;height:50px;flex-basis:50px;padding:3px}.brand-name,.site-header.scrolled .brand-name{font-size:1.03rem}.brand-meta{display:none}.hero{min-height:88svh}.hero-media{object-position:64% 50%;transform:scale(1.01)}.hero-copy{padding-top:132px;padding-bottom:12vw}.hero h1{font-size:clamp(2.85rem,14.2vw,3.35rem)}.actions{gap:9px}.hero .btn{width:100%}.intro,.events,.packages,.inclusions,.staffing,.addons-section,.gallery,.flow,.faq,.inquiry{padding-top:15vw;padding-bottom:15vw}.areas-home,.page-hero,.content-section,.related-section,.gallery-page,.service-index,.inline-cta{padding-top:15vw;padding-bottom:15vw}.event-grid{margin-top:38px}.event-grid article{padding:28px;min-height:0}.package{padding:28px}.inquiry form{padding:22px}.quote-calculator{margin-left:-6px;margin-right:-6px;padding:18px}.calculator-head{padding-bottom:18px}.footer-medallion{width:66px;height:66px;flex-basis:66px}footer{gap:28px;padding:40px 6vw 24px}.footer-brand-lockup strong{font-size:1.45rem}.lightbox{padding:18vw 4vw 8vw}.lightbox img{max-width:96vw;max-height:78svh}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.site-header,.brand-medallion,.brand-name,.brand-meta,.hero .btn,.package,.photo img,.split-image img{transition:none!important}.photo:hover img,.split:hover .split-image img{transform:none}}
