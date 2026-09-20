@@ -1,0 +1,109 @@
+const { test, expect } = require('@playwright/test');
+const AxeBuilder = require('@axe-core/playwright').default;
+
+const pages = [
+  '/',
+  '/services/',
+  '/birthdays/',
+  '/corporate-events/',
+  '/graduations/',
+  '/private-parties/',
+  '/weddings/',
+  '/bartender-service/',
+  '/gallery/',
+  '/service-areas/',
+  '/service-areas/hilo/',
+  '/service-areas/kona/',
+  '/service-areas/waimea/',
+  '/service-areas/puna/',
+  '/privacy.html',
+  '/terms.html',
+  '/thank-you.html'
+];
+
+for (const path of pages) {
+  test(path + ' renders without layout or console failures', async ({ page, request }) => {
+    const errors = [];
+    page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
+    page.on('pageerror', err => errors.push(err.message));
+
+    const response = await page.goto(path, { waitUntil: 'networkidle' });
+    expect(response, 'page response').not.toBeNull();
+    expect(response.status(), 'HTTP status').toBeLessThan(400);
+
+    await expect(page.locator('body')).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2), 'no horizontal overflow').toBeTruthy();
+
+    const h1 = page.locator('h1').first();
+    if (await h1.count()) await expect(h1).toBeVisible();
+
+    if (!path.includes('privacy') && !path.includes('terms') && !path.includes('thank-you')) {
+      await expect(page.locator('.site-header')).toBeVisible();
+      await expect(page.locator('footer')).toBeVisible();
+    }
+
+    expect(errors.filter(e => !/favicon|Failed to load resource.*404/i.test(e)), 'console/page errors').toEqual([]);
+  });
+}
+
+test('homepage metadata, favicon package and quote calculator', async ({ page, request }) => {
+  await page.goto('/', { waitUntil: 'networkidle' });
+
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://koasmobilebar.com/');
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /mobile bar/i);
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', /mobile-bar-hero/i);
+
+  for (const asset of ['/favicon-16x16.png','/favicon-32x32.png','/favicon-48x48.png','/apple-touch-icon.png','/favicon-192x192.png','/favicon-512x512.png','/site.webmanifest']) {
+    const r = await request.get(asset);
+    expect(r.status(), asset).toBeLessThan(400);
+  }
+
+  const form = page.locator('[data-mobile-quote-form]');
+  await expect(form).toBeVisible();
+  await expect(form.locator('[data-estimate-total]')).toContainText('$');
+  await form.locator('select[name="package"]').selectOption('mobile-big-island');
+  await expect(form.locator('[data-estimate-total]')).not.toContainText('$0');
+
+  const active = page.locator('.package.is-selected');
+  await expect(active).toHaveCount(1);
+});
+
+test('internal links return non-error responses', async ({ page, request }) => {
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  const hrefs = await page.locator('a[href]').evaluateAll(nodes => [...new Set(nodes.map(a => a.getAttribute('href')).filter(Boolean))]);
+  for (const href of hrefs) {
+    if (/^(mailto:|tel:|javascript:|#)/i.test(href)) continue;
+    const url = new URL(href, 'https://koasmobilebar.com');
+    if (url.origin !== 'https://koasmobilebar.com') continue;
+    const r = await request.get(url.href);
+    expect(r.status(), href).toBeLessThan(400);
+  }
+});
+
+test('homepage accessibility has no serious or critical axe violations', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'networkidle' });
+  const results = await new AxeBuilder({ page }).analyze();
+  const blocking = results.violations.filter(v => ['serious','critical'].includes(v.impact));
+  expect(blocking).toEqual([]);
+});
+
+test('mobile navigation opens, closes and remains usable', async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.startsWith('mobile-'), 'mobile-only interaction');
+  await page.goto('/', { waitUntil: 'networkidle' });
+  const menu = page.locator('.menu');
+  await menu.click();
+  await expect(page.locator('#nav')).toHaveClass(/open/);
+  await expect(menu).toHaveAttribute('aria-expanded','true');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#nav')).not.toHaveClass(/open/);
+});
+
+test('visual reference screenshots', async ({ page }, testInfo) => {
+  for (const path of ['/', '/services/', '/gallery/', '/weddings/', '/service-areas/']) {
+    await page.goto(path, { waitUntil: 'networkidle' });
+    await page.screenshot({
+      path: 'qa-artifacts/' + testInfo.project.name + '-' + path.replace(/\W+/g,'-').replace(/^-|-$/g,'') + '.png',
+      fullPage: true
+    });
+  }
+});
