@@ -52,9 +52,9 @@ The website currently publishes these Mobile Bar package starting prices:
 
 | Package | Starting Price | Service Focus |
 | --- | ---: | --- |
-| Oahu | $1,200 | Beer, champagne and wine |
-| Maui | $1,500 | Oahu package plus two signature drinks |
-| Big Island | $1,800 | Fuller cocktail service |
+| Big Island | $2,500 | Fuller cocktail service |
+| Maui | $2,000 | Oahu package plus two signature drinks |
+| Oahu | $1,500 | Beer, champagne and wine |
 
 Standard service baseline:
 
