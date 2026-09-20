@@ -98,7 +98,7 @@ test('package cards are directly selectable and sync with calculator', async ({ 
     await expect(select).toHaveValue(id);
     await expect(page.locator('.package.is-selected')).toHaveCount(1);
     await expect(page.locator('[data-package-id="' + id + '"]')).toHaveClass(/is-selected/);
-    await expect(page.locator('[data-package-id="' + id + '"]')).toHaveAttribute('aria-pressed','true');
+    await expect(page.locator('[data-package-id="' + id + '"] .package-request')).toHaveAttribute('aria-pressed','true');
   }
 });
 
