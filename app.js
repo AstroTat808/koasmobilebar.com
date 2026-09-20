@@ -16,7 +16,7 @@ function calculate(){
  const glassware=Math.max(0,Math.round(val('glassware-count',0)));
  const extraGuests=Math.max(0,guests-100)*8;
  const extraHours=Math.max(0,hours-4)*200;
- const labor=hours*bartenders*40;
+ const labor=hours*bartenders*65;
  const travel=Math.max(0,oneWayMiles-20)*2*1.5;
  const gratuityMode=String(form.elements.gratuity.value||'later');
  const gratuityRate=gratuityMode==='tipjar-10'?.10:gratuityMode==='nojar-25'?.25:0;
@@ -27,7 +27,7 @@ function calculate(){
   {id:'package',description:packageNames[packageId]||'Mobile Bar package',quantity:1,unitPrice:base,amount:base,custom:packageId==='mobile-custom'},
   ...(extraGuests?[{id:'extra-guests',description:'Additional guests over 100',quantity:Math.max(0,guests-100),unitPrice:8,amount:extraGuests,custom:false}]:[]),
   ...(extraHours?[{id:'extra-hours',description:'Additional service hours over 4',quantity:Math.max(0,hours-4),unitPrice:200,amount:extraHours,custom:false}]:[]),
-  {id:'bartender-labor',description:'Bartender labor',quantity:bartenders,unitPrice:hours*40,amount:labor,custom:false},
+  {id:'bartender-labor',description:'Bartender labor',quantity:bartenders,unitPrice:hours*65,amount:labor,custom:false},
   ...(travel?[{id:'travel',description:'Travel beyond 20-mile included radius (round trip)',quantity:Math.max(0,(oneWayMiles-20)*2),unitPrice:1.5,amount:travel,custom:false}]:[]),
   ...(gratuity?[{id:'gratuity',description:gratuityMode==='tipjar-10'?'Bartender gratuity (10% + tip jar)':'Bartender gratuity (25% + no tip jar)',quantity:1,unitPrice:gratuity,amount:gratuity,custom:false}]:[]),
   ...(glassware?[{id:'glassware',description:'Glassware',quantity:glassware,unitPrice:1.5,amount:glasswareTotal,custom:false}]:[]),
