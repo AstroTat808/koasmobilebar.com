@@ -144,6 +144,10 @@ Playwright checks:
 
 QA artifacts are retained in GitHub Actions for 14 days.
 
+### Visual Regression Baselines
+
+The approved screenshot suite is currently **v2.1** and contains 101 responsive reference images covering every public page plus high-value interaction states: package selection, configured calculator, partial inquiry form, expanded FAQ, gallery lightbox/filtering, and mobile navigation. Browser QA compares future changes against these committed baselines.
+
 ### Lighthouse Gate
 
 Lighthouse CI checks:
