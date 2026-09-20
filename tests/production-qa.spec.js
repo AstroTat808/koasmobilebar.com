@@ -203,6 +203,90 @@ test('mobile quote layout stays stacked and inside the viewport', async ({ page 
   }
 });
 
+
+test('site-wide mobile visual audit at 320, 390 and 430', async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.startsWith('mobile-'), 'mobile-only site audit');
+  test.setTimeout(120000);
+
+  for (const width of [320, 390, 430]) {
+    await page.setViewportSize({ width, height: 900 });
+
+    for (const path of pages) {
+      await page.goto(path, { waitUntil: 'domcontentloaded' });
+      await page.waitForLoadState('load');
+
+      const audit = await page.evaluate(() => {
+        const viewportWidth = document.documentElement.clientWidth;
+        const visible = el => {
+          if (el.closest('.hidden') || el.closest('[hidden]')) return false;
+          const style = getComputedStyle(el);
+          const rect = el.getBoundingClientRect();
+          return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 1 && rect.height > 1;
+        };
+
+        const content = [...document.querySelectorAll('main h1,main h2,main h3,main p,main a,main button,main input,main select,main textarea,main label,main summary,main article,main figure,main form,footer a,footer p')].filter(visible);
+        const clipped = content.flatMap(el => {
+          const rect = el.getBoundingClientRect();
+          if (rect.left < -2 || rect.right > viewportWidth + 2) {
+            return [{
+              tag: el.tagName.toLowerCase(),
+              className: String(el.className || ''),
+              left: Math.round(rect.left),
+              right: Math.round(rect.right),
+              viewportWidth
+            }];
+          }
+          return [];
+        });
+
+        const touchSelectors = '.menu,.btn,.filter-btn,.package-request,input,select,textarea';
+        const smallTargets = [...document.querySelectorAll(touchSelectors)].filter(visible).flatMap(el => {
+          const rect = el.getBoundingClientRect();
+          if (rect.height < 42 || rect.width < 42) {
+            return [{
+              tag: el.tagName.toLowerCase(),
+              className: String(el.className || ''),
+              width: Math.round(rect.width),
+              height: Math.round(rect.height)
+            }];
+          }
+          return [];
+        });
+
+        const header = document.querySelector('.site-header');
+        let headerCollision = null;
+        if (header) {
+          const brand = header.querySelector('.brand');
+          const menu = header.querySelector('.menu');
+          if (brand && menu && visible(brand) && visible(menu)) {
+            const b = brand.getBoundingClientRect();
+            const m = menu.getBoundingClientRect();
+            if (b.right > m.left - 4) headerCollision = { brandRight: Math.round(b.right), menuLeft: Math.round(m.left) };
+          }
+        }
+
+        return { clipped, smallTargets, headerCollision };
+      });
+
+      expect(audit.clipped, path + ' clipped content at ' + width + 'px').toEqual([]);
+      expect(audit.smallTargets, path + ' undersized primary controls at ' + width + 'px').toEqual([]);
+      expect(audit.headerCollision, path + ' header collision at ' + width + 'px').toBeNull();
+    }
+  }
+});
+
+test('mobile live estimate stays synchronized with full estimate', async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.startsWith('mobile-'), 'mobile-only quote interaction');
+  await page.goto('/', { waitUntil: 'networkidle' });
+  const form=page.locator('[data-mobile-quote-form]');
+  await expect(form.locator('[data-mobile-estimate-total]')).toHaveText('Select a package');
+  await form.locator('select[name="package"]').selectOption('mobile-maui');
+  await expect(form.locator('[data-mobile-estimate-total]')).toHaveText(await form.locator('[data-estimate-total]').innerText());
+  await form.locator('input[name="guest-count"]').fill('125');
+  await expect(form.locator('[data-mobile-estimate-total]')).toHaveText(await form.locator('[data-estimate-total]').innerText());
+  await expect(form.locator('.mobile-estimate-dock')).toHaveClass(/has-package/);
+});
+
 test('visual reference screenshots', async ({ page }, testInfo) => {
   for (const path of pages) {
     await page.goto(path, { waitUntil: 'networkidle' });
