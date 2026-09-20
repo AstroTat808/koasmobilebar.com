@@ -101,7 +101,7 @@ test('mobile navigation opens, closes and remains usable', async ({ page }, test
 });
 
 test('visual reference screenshots', async ({ page }, testInfo) => {
-  for (const path of ['/', '/services/', '/gallery/', '/weddings/', '/service-areas/']) {
+  for (const path of pages) {
     await page.goto(path, { waitUntil: 'networkidle' });
     await page.screenshot({
       path: 'qa-artifacts/' + testInfo.project.name + '-' + path.replace(/\W+/g,'-').replace(/^-|-$/g,'') + '.png',
