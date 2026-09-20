@@ -119,7 +119,7 @@ const fs = require('fs');
 const visualBaselineDir = 'tests/production-qa.spec.js-snapshots';
 
 test.describe('visual regression @visual', () => {
-  test.skip(!fs.existsSync(visualBaselineDir), 'Approved visual baselines have not been bootstrapped yet.');
+  test.skip(!fs.existsSync(visualBaselineDir) && process.env.BOOTSTRAP_VISUAL !== '1', 'Approved visual baselines have not been bootstrapped yet.');
 
   const visualPages = [
     ['home','/'],
