@@ -6,7 +6,10 @@
   "scripts": {
     "qa": "playwright test",
     "qa:prod": "BASE_URL=https://koasmobilebar.com playwright test",
-    "qa:lighthouse": "lhci autorun --config=.lighthouserc.json"
+    "qa:lighthouse": "lhci autorun --config=.lighthouserc.json",
+    "qa:visual": "playwright test --grep \"@visual\"",
+    "qa:visual:update": "playwright test --grep \"@visual\" --update-snapshots",
+    "qa:crm": "node tests/crm-handoff.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.2",
