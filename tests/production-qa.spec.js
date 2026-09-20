@@ -139,6 +139,70 @@ test('mobile navigation opens, closes and remains usable', async ({ page }, test
   await expect(page.locator('#nav')).not.toHaveClass(/open/);
 });
 
+
+test('mobile quote layout stays stacked and inside the viewport', async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.startsWith('mobile-'), 'mobile-only responsive audit');
+
+  for (const width of [320, 390, 430]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/', { waitUntil: 'networkidle' });
+
+    const inquiry = page.locator('#inquire');
+    await inquiry.scrollIntoViewIfNeeded();
+
+    const metrics = await page.evaluate(() => {
+      const viewportWidth = document.documentElement.clientWidth;
+      const copy = document.querySelector('#inquire .inquiry-copy').getBoundingClientRect();
+      const form = document.querySelector('#inquire form').getBoundingClientRect();
+      const calculator = document.querySelector('#inquire .quote-calculator').getBoundingClientRect();
+      const brand = document.querySelector('.site-header .brand').getBoundingClientRect();
+      const menu = document.querySelector('.site-header .menu').getBoundingClientRect();
+
+      const candidates = [...document.querySelectorAll(
+        '#inquire h2,#inquire h3,#inquire p,#inquire a,#inquire button,#inquire input,#inquire select,#inquire textarea,#inquire label,#inquire form,#inquire .quote-calculator,#inquire .estimate-panel'
+      )];
+
+      const clipped = candidates.flatMap(el => {
+        if (el.closest('.hidden')) return [];
+        const style = getComputedStyle(el);
+        const rect = el.getBoundingClientRect();
+        if (style.display === 'none' || style.visibility === 'hidden' || rect.width < 1 || rect.height < 1) return [];
+        if (rect.left < -2 || rect.right > viewportWidth + 2) {
+          return [{
+            element: el.tagName.toLowerCase() + (el.className ? '.' + String(el.className).trim().replace(/\s+/g, '.') : ''),
+            left: Math.round(rect.left * 10) / 10,
+            right: Math.round(rect.right * 10) / 10,
+            viewportWidth
+          }];
+        }
+        return [];
+      });
+
+      return {
+        copyLeft: copy.left,
+        copyBottom: copy.bottom,
+        formLeft: form.left,
+        formTop: form.top,
+        formRight: form.right,
+        calculatorRight: calculator.right,
+        brandRight: brand.right,
+        menuLeft: menu.left,
+        menuRight: menu.right,
+        viewportWidth,
+        clipped
+      };
+    });
+
+    expect(metrics.formTop, 'quote form should stack below intro at ' + width + 'px').toBeGreaterThan(metrics.copyBottom + 12);
+    expect(Math.abs(metrics.formLeft - metrics.copyLeft), 'stacked columns align at ' + width + 'px').toBeLessThanOrEqual(2);
+    expect(metrics.formRight, 'form fits viewport at ' + width + 'px').toBeLessThanOrEqual(metrics.viewportWidth + 2);
+    expect(metrics.calculatorRight, 'calculator fits viewport at ' + width + 'px').toBeLessThanOrEqual(metrics.viewportWidth + 2);
+    expect(metrics.brandRight, 'brand must not collide with menu at ' + width + 'px').toBeLessThanOrEqual(metrics.menuLeft - 4);
+    expect(metrics.menuRight, 'menu fits viewport at ' + width + 'px').toBeLessThanOrEqual(metrics.viewportWidth + 2);
+    expect(metrics.clipped, 'no clipped inquiry content at ' + width + 'px').toEqual([]);
+  }
+});
+
 test('visual reference screenshots', async ({ page }, testInfo) => {
   for (const path of pages) {
     await page.goto(path, { waitUntil: 'networkidle' });
@@ -154,7 +218,7 @@ const fs = require('fs');
 const visualBaselineDir = 'tests/production-qa.spec.js-snapshots';
 
 test.describe('visual regression @visual', () => {
-  const baselineVersion = 'v2.3';
+  const baselineVersion = 'v2.4';
   const baselineMarker = visualBaselineDir + '/.baseline-version';
   const approved = fs.existsSync(visualBaselineDir) && fs.existsSync(baselineMarker) && fs.readFileSync(baselineMarker,'utf8').trim() === baselineVersion;
   test.skip(!approved && process.env.BOOTSTRAP_VISUAL !== '1', 'Approved visual baselines have not been bootstrapped for ' + baselineVersion + '.');
