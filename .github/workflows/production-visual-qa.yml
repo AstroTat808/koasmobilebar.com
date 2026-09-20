@@ -20,13 +20,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
       - run: npm install
       - run: npx playwright install --with-deps chromium
+      - name: Start local static site
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/koa-http.log 2>&1 &
+          for i in {1..20}; do
+            curl -fsS http://127.0.0.1:4173/ >/dev/null && break
+            sleep 1
+          done
       - name: Run responsive, accessibility, links, metadata and form QA
         env:
-          BASE_URL: https://koasmobilebar.com
-        run: npm run qa:prod
+          BASE_URL: http://127.0.0.1:4173
+        run: npm run qa
       - name: Upload visual QA artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -48,7 +54,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
       - run: npm install
       - name: Run Lighthouse performance, accessibility and SEO gates
         run: npm run qa:lighthouse
