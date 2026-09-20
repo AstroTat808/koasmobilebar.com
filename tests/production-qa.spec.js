@@ -119,6 +119,22 @@ test('package cards are directly selectable and sync with calculator', async ({ 
   await expect(select.locator('option[value="mobile-maui"]')).toHaveText('Maui Package — $2,000');
   await expect(select.locator('option[value="mobile-oahu"]')).toHaveText('Oahu Package — $1,500');
 
+  await form.locator('select[name="package"]').selectOption('mobile-oahu');
+  await form.locator('input[name="guest-count"]').fill('110');
+  await expect(form.locator('[data-estimate-lines]')).toContainText('Additional guests over 100');
+  await expect(form.locator('[data-estimate-lines]')).toContainText('$100');
+
+  await form.locator('select[name="package"]').selectOption('mobile-maui');
+  await expect(form.locator('[data-estimate-lines]')).toContainText('$120');
+
+  await form.locator('select[name="package"]').selectOption('mobile-big-island');
+  await expect(form.locator('[data-estimate-lines]')).toContainText('$150');
+  await form.locator('input[name="addon-soda-station"]').check();
+  await expect(form.locator('[data-estimate-lines]')).toContainText('Soda Station');
+  await expect(form.locator('[data-estimate-lines]')).toContainText('$440');
+  await form.locator('input[name="addon-soda-station"]').uncheck();
+  await form.locator('input[name="guest-count"]').fill('100');
+
   for (const id of ['mobile-big-island','mobile-maui','mobile-oahu']) {
     await page.locator('[data-package-id="' + id + '"]').click();
     await expect(select).toHaveValue(id);
@@ -315,7 +331,7 @@ const fs = require('fs');
 const visualBaselineDir = 'tests/production-qa.spec.js-snapshots';
 
 test.describe('visual regression @visual', () => {
-  const baselineVersion = 'v2.8';
+  const baselineVersion = 'v2.9';
   const baselineMarker = visualBaselineDir + '/.baseline-version';
   const approved = fs.existsSync(visualBaselineDir) && fs.existsSync(baselineMarker) && fs.readFileSync(baselineMarker,'utf8').trim() === baselineVersion;
   test.skip(!approved && process.env.BOOTSTRAP_VISUAL !== '1', 'Approved visual baselines have not been bootstrapped for ' + baselineVersion + '.');
