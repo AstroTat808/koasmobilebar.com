@@ -226,6 +226,12 @@ test('site-wide mobile visual audit at 320, 390 and 430', async ({ page }, testI
 
         const content = [...document.querySelectorAll('main h1,main h2,main h3,main p,main a,main button,main input,main select,main textarea,main label,main summary,main article,main figure,main form,footer a,footer p')].filter(visible);
         const clipped = content.flatMap(el => {
+          const intentionalScroller = el.closest('.filters');
+          if (intentionalScroller) {
+            const scrollerStyle = getComputedStyle(intentionalScroller);
+            const horizontallyScrollable = /auto|scroll/.test(scrollerStyle.overflowX) && intentionalScroller.scrollWidth > intentionalScroller.clientWidth;
+            if (horizontallyScrollable) return [];
+          }
           const rect = el.getBoundingClientRect();
           if (rect.left < -2 || rect.right > viewportWidth + 2) {
             return [{
