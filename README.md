@@ -94,7 +94,17 @@ Captured information includes:
 - Referral source
 - Notes and priorities
 
-The site also keeps the Netlify form submission path as a resilient inquiry fallback.
+Mobile Bar inquiries are protected by Cloudflare Turnstile. The browser submits to `/api/mobile-bar-inquiry`; the Netlify Function verifies the Turnstile token server-side before forwarding a server-recalculated quote to the Koa's Events CRM. Unverified submissions are rejected.
+
+## Turnstile Configuration
+
+The Netlify project requires these environment variables:
+
+- `TURNSTILE_SITE_KEY` — public Cloudflare Turnstile widget site key.
+- `TURNSTILE_SECRET_KEY` — private Turnstile validation key; Functions scope only.
+- `TURNSTILE_ALLOWED_HOSTNAMES` — optional comma-separated hostname allowlist. Defaults to `koasmobilebar.com,www.koasmobilebar.com`.
+
+Create the production Turnstile widget for `koasmobilebar.com` and `www.koasmobilebar.com`. The form fails closed if Turnstile is unavailable or misconfigured; there is no unverified Netlify Forms fallback.
 
 ## Front-End Structure
 
@@ -143,10 +153,6 @@ Playwright checks:
 - Reference screenshots for high-signal pages
 
 QA artifacts are retained in GitHub Actions for 14 days.
-
-### Visual Regression Baselines
-
-The approved screenshot suite is currently **v2.1** and contains 101 responsive reference images covering every public page plus high-value interaction states: package selection, configured calculator, partial inquiry form, expanded FAQ, gallery lightbox/filtering, and mobile navigation. Browser QA compares future changes against these committed baselines.
 
 ### Lighthouse Gate
 
