@@ -239,3 +239,12 @@ html,body{max-width:100%;overflow-x:hidden}
 
 .package .package-request{margin-top:auto;display:inline-flex;align-items:center;gap:8px;width:max-content;border:0;background:transparent;padding:0;color:var(--copper);font:700 1rem/1.4 Inter,system-ui,sans-serif;cursor:pointer;transition:gap .2s ease,color .2s ease}
 .package .package-request:hover{gap:12px}.package .package-request:focus-visible{outline:3px solid #c5a36d;outline-offset:6px;border-radius:2px}
+
+
+/* Cloudflare Turnstile form protection — 2026-09-20 */
+.turnstile-wrap{min-height:70px;display:flex;align-items:center;margin:4px 0 2px;max-width:100%}
+.turnstile-wrap iframe{max-width:100%}
+.inquiry form .btn[disabled]{opacity:.56;cursor:not-allowed;filter:saturate(.65);transform:none}
+.form-note[data-state="ready"]{color:#476a59}
+.form-note[data-state="error"]{color:#9a3f2f}
+@media(max-width:420px){.turnstile-wrap{overflow:hidden}}
