@@ -229,8 +229,18 @@ export default async (req, context) => {
   });
 
   const crmResult = await crmResponse.json().catch(() => ({}));
-  if (!crmResponse.ok || !crmResult.id) {
-    console.error('Koa Events CRM rejected Mobile Bar inquiry', crmResponse.status);
+  if (!crmResponse.ok) {
+    const securityStatus = crmResponse.status === 403 || crmResponse.status === 429;
+    if (!securityStatus) console.error('Koa Events CRM rejected Mobile Bar inquiry', crmResponse.status);
+    return Response.json({
+      error: securityStatus
+        ? String(crmResult?.error || 'We could not accept this submission. Please try again later.')
+        : 'Your inquiry could not be saved. Please try again.',
+      code: String(crmResult?.code || (securityStatus ? 'security_rejected' : 'crm_unavailable')),
+    }, { status: securityStatus ? crmResponse.status : 502 });
+  }
+
+  if (!crmResult.id) {
     return Response.json({ error: 'Your inquiry could not be saved. Please try again.' }, { status: 502 });
   }
 
