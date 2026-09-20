@@ -86,6 +86,22 @@ test('internal links return non-error responses', async ({ page, request }) => {
   }
 });
 
+test('package cards are directly selectable and sync with calculator', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'networkidle' });
+  const form=page.locator('[data-mobile-quote-form]');
+  const select=form.locator('select[name="package"]');
+  await expect(select).toHaveValue('');
+  await expect(page.locator('.package.is-selected')).toHaveCount(0);
+
+  for (const id of ['mobile-oahu','mobile-maui','mobile-big-island']) {
+    await page.locator('[data-package-id="' + id + '"]').click();
+    await expect(select).toHaveValue(id);
+    await expect(page.locator('.package.is-selected')).toHaveCount(1);
+    await expect(page.locator('[data-package-id="' + id + '"]')).toHaveClass(/is-selected/);
+    await expect(page.locator('[data-package-id="' + id + '"]')).toHaveAttribute('aria-selected','true');
+  }
+});
+
 test('homepage accessibility has no serious or critical axe violations', async ({ page }) => {
   await page.goto('/', { waitUntil: 'networkidle' });
   const results = await new AxeBuilder({ page }).analyze();
