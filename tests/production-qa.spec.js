@@ -112,7 +112,13 @@ test('package cards are directly selectable and sync with calculator', async ({ 
   await expect(select).toHaveValue('');
   await expect(page.locator('.package.is-selected')).toHaveCount(0);
 
-  for (const id of ['mobile-oahu','mobile-maui','mobile-big-island']) {
+  const cardIds = await page.locator('.package-grid .package[data-package-id]').evaluateAll(nodes => nodes.map(node => node.dataset.packageId));
+  expect(cardIds).toEqual(['mobile-big-island','mobile-maui','mobile-oahu']);
+  await expect(select.locator('option[value="mobile-big-island"]')).toHaveText('Big Island Package — $2,500');
+  await expect(select.locator('option[value="mobile-maui"]')).toHaveText('Maui Package — $2,000');
+  await expect(select.locator('option[value="mobile-oahu"]')).toHaveText('Oahu Package — $1,500');
+
+  for (const id of ['mobile-big-island','mobile-maui','mobile-oahu']) {
     await page.locator('[data-package-id="' + id + '"]').click();
     await expect(select).toHaveValue(id);
     await expect(page.locator('.package.is-selected')).toHaveCount(1);
@@ -308,7 +314,7 @@ const fs = require('fs');
 const visualBaselineDir = 'tests/production-qa.spec.js-snapshots';
 
 test.describe('visual regression @visual', () => {
-  const baselineVersion = 'v2.4';
+  const baselineVersion = 'v2.5';
   const baselineMarker = visualBaselineDir + '/.baseline-version';
   const approved = fs.existsSync(visualBaselineDir) && fs.existsSync(baselineMarker) && fs.readFileSync(baselineMarker,'utf8').trim() === baselineVersion;
   test.skip(!approved && process.env.BOOTSTRAP_VISUAL !== '1', 'Approved visual baselines have not been bootstrapped for ' + baselineVersion + '.');
