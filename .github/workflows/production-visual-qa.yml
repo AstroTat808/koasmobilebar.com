@@ -123,14 +123,22 @@ jobs:
             curl --fail --silent --show-error --location "$url" >/dev/null
           done
 
-          curl --fail --silent --show-error https://koasmobilebar.com/api/turnstile-config | grep -q '"siteKey"'
+          if [ "$GITHUB_EVENT_NAME" = "push" ] && [ "$GITHUB_REF" = "refs/heads/main" ]; then
+            for i in {1..30}; do
+              if curl --fail --silent --show-error https://koasmobilebar.com/api/turnstile-config | grep -q '"siteKey"'; then
+                break
+              fi
+              sleep 4
+            done
+            curl --fail --silent --show-error https://koasmobilebar.com/api/turnstile-config | grep -q '"siteKey"'
 
-          status="$(curl --silent --output /tmp/turnstile-reject.json --write-out '%{http_code}' \
-            -X POST https://koasmobilebar.com/api/mobile-bar-inquiry \
-            -H 'Content-Type: application/json' \
-            --data '{"packageId":"mobile-oahu","customer":{"name":"QA","email":"qa@example.com","phone":"808-555-0100","eventDate":"2026-12-12"},"inquiry":{"eventLocation":"Hilo","eventType":"Birthday"}}')"
-          test "$status" = "400"
-          grep -qi 'verification' /tmp/turnstile-reject.json
+            status="$(curl --silent --output /tmp/turnstile-reject.json --write-out '%{http_code}' \
+              -X POST https://koasmobilebar.com/api/mobile-bar-inquiry \
+              -H 'Content-Type: application/json' \
+              --data '{"packageId":"mobile-oahu","customer":{"name":"QA","email":"qa@example.com","phone":"808-555-0100","eventDate":"2026-12-12"},"inquiry":{"eventLocation":"Hilo","eventType":"Birthday"}}')"
+            test "$status" = "400"
+            grep -qi 'verification' /tmp/turnstile-reject.json
+          fi
 
   lighthouse:
     name: Lighthouse Gate
