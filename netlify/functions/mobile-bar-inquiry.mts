@@ -122,7 +122,8 @@ async function verifyTurnstile(token, remoteIp) {
 
   const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
     method: 'POST',
-    body
+    body,
+    signal: AbortSignal.timeout(10_000)
   });
 
   if (!response.ok) throw new Error('TURNSTILE_VERIFY_UNAVAILABLE');
@@ -134,9 +135,27 @@ export default async (req, context) => {
     return Response.json({ error: 'Method not allowed' }, { status: 405 });
   }
 
+  const origin = req.headers.get('origin') || '';
+  if (origin) {
+    const requestOrigin = new URL(req.url).origin;
+    const allowedOrigins = new Set([
+      requestOrigin,
+      'https://koasmobilebar.com',
+      'https://www.koasmobilebar.com',
+    ]);
+    if (!allowedOrigins.has(origin)) {
+      return Response.json({ error: 'Cross-site inquiry submission is not allowed.' }, { status: 403 });
+    }
+  }
+
+  const rawBody = await req.text();
+  if (rawBody.length > 60_000) {
+    return Response.json({ error: 'Inquiry is too large.' }, { status: 413 });
+  }
+
   let body;
   try {
-    body = await req.json();
+    body = JSON.parse(rawBody);
   } catch {
     return Response.json({ error: 'Invalid request body' }, { status: 400 });
   }
@@ -229,7 +248,8 @@ export default async (req, context) => {
       'X-Koa-Inquiry-Capture': '1',
       ...sourceHeaders
     },
-    body: JSON.stringify(crmPayload)
+    body: JSON.stringify(crmPayload),
+    signal: AbortSignal.timeout(12_000)
   });
 
   const crmResult = await crmResponse.json().catch(() => ({}));
@@ -238,7 +258,12 @@ export default async (req, context) => {
     return Response.json({ error: 'Your inquiry could not be saved. Please try again.' }, { status: 502 });
   }
 
-  return Response.json({ ok: true, id: crmResult.id });
+  return Response.json({
+    ok: true,
+    id: crmResult.id,
+    deduplicated: Boolean(crmResult.deduplicated),
+    notificationConfigured: Boolean(crmResult.notificationConfigured),
+  });
 };
 
 export const config: Config = {
