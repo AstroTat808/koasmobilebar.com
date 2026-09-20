@@ -248,3 +248,26 @@ html,body{max-width:100%;overflow-x:hidden}
 .form-note[data-state="ready"]{color:#476a59}
 .form-note[data-state="error"]{color:#9a3f2f}
 @media(max-width:420px){.turnstile-wrap{overflow:hidden}}
+
+/* Mobile responsive closure — 2026-09-20 */
+.inquiry>*{min-width:0}
+.inquiry form,.quote-calculator,.calculator-fields,.calculator-addons,.estimate-panel{min-width:0;max-width:100%}
+@media(max-width:900px){
+  .inquiry{grid-template-columns:minmax(0,1fr);gap:42px}
+  .inquiry-copy{position:static}
+}
+@media(max-width:600px){
+  .inquiry{padding-left:6vw;padding-right:6vw;gap:34px}
+  .inquiry form{width:100%;padding:20px}
+  .quote-calculator{width:100%;margin-left:0;margin-right:0;padding:18px}
+  .calculator-head h3{font-size:clamp(1.75rem,9vw,2.2rem)}
+  .contact a{overflow-wrap:anywhere}
+  .inquiry form>.btn[type=submit]{width:100%}
+}
+@media(max-width:360px){
+  .site-header{gap:10px}
+  .brand-medallion,.site-header.scrolled .brand-medallion{width:44px;height:44px;flex-basis:44px}
+  .brand-name,.site-header.scrolled .brand-name{font-size:.94rem}
+  .menu{padding:8px 11px;font-size:.72rem}
+}
+
