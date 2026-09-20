@@ -72,7 +72,7 @@ const checks = [
   ['gratuityMode', record.inquiry?.gratuityMode, 'tipjar-10'],
   ['glasswareCount', record.inquiry?.glasswareCount, 125],
   ['estimatedTotal', record.inquiry?.estimatedTotal, expectedTotal],
-  ['calculatorVersion', record.inquiry?.calculatorVersion, 'mobile-bar-v1']
+  ['calculatorVersion', record.inquiry?.calculatorVersion, 'mobile-bar-v2']
 ];
 for (const [label,actual,expected] of checks) {
   if (actual !== expected) throw new Error(label + ' mismatch. Expected ' + JSON.stringify(expected) + ', got ' + JSON.stringify(actual));
