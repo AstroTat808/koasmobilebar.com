@@ -33,6 +33,38 @@ Koa's counter-position:
 - Own the broader event-operations angle: trailer OR bartender-only service, planning, setup, guest-flow, transparent core pricing, East/West Hawaii logistics, and integration with Koa's Events operational experience.
 - Build more proof around real weddings, real Mobile Bar photos, venue coordination and repeatable service process.
 
+### Sandbar Cocktail Co. — transparent Big Island beverage-catering competitor
+Website: https://www.sandbarcocktailco.com/
+
+Observed strengths:
+- Big Island-specific beverage catering positioning.
+- Published package pricing and per-guest pricing.
+- Clear bartender/barback staffing rules.
+- Alcohol shopping list and calculator support.
+- TIPS-certified bartenders.
+- General and liquor liability insurance.
+- Local-ingredient cocktail positioning.
+- Strong operational language around line speed, guest experience and VIP service.
+
+Koa's counter-position:
+- Keep Koa's package pricing and bartender labor easy to compare.
+- Make the shopping-list and staffing education more visible.
+- Emphasize the option to use either the Koa's trailer or a venue's existing bar.
+- Build stronger Hilo/Kona geographic authority and real-event proof.
+
+### Papa Kona Events & Catering — Kona-specific alternative
+Website: https://www.papakonaevents.com/
+
+Observed strengths:
+- Strong Kona location/entity authority.
+- Venue + catering + professional bartender service under one brand.
+- Large review/brand footprint and established vendor relationships.
+- Bar packages and alcohol-estimation help integrated into event planning.
+
+Koa's counter-position:
+- Win non-venue-bound demand: weddings at private estates, outside venues and event locations where the client wants independent bar service.
+- Make travel, bartender-only service and mobile trailer options clearer than venue-attached catering competitors.
+
 ### Spirited Cocktail Catering — established Big Island craft-cocktail competitor
 Website: https://www.spiritedcocktail.com/
 About: https://www.spiritedcocktail.com/about
