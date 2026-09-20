@@ -10,7 +10,8 @@ export default async (req) => {
 
   return Response.json({
     siteKey,
-    action: 'mobile_bar_inquiry'
+    action: 'mobile_bar_inquiry',
+    crmHandoffConfigured: Boolean(String(Netlify.env.get('KOA_MOBILE_BAR_INGEST_SECRET') || '').trim())
   }, {
     headers: { 'Cache-Control': 'no-store' }
   });
