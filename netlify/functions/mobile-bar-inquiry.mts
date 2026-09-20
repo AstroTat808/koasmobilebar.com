@@ -1,3 +1,5 @@
+import type { Config } from '@netlify/functions';
+
 const PACKAGE_PRICES = {
   'mobile-oahu': 1200,
   'mobile-maui': 1500,
@@ -64,6 +66,51 @@ function allowedHostname(hostname) {
 
   const host = String(hostname || '').toLowerCase();
   return allowed.some(rule => rule.startsWith('.') ? host.endsWith(rule) : host === rule);
+}
+
+function ingestSecret() {
+  return String(Netlify.env.get('KOA_MOBILE_BAR_INGEST_SECRET') || '').trim();
+}
+
+function base64Url(bytes) {
+  let binary = '';
+  for (const byte of new Uint8Array(bytes)) binary += String.fromCharCode(byte);
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+}
+
+async function hmac(secret, value) {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  return base64Url(await crypto.subtle.sign('HMAC', key, encoder.encode(value)));
+}
+
+async function signedSourceHeaders(req, context) {
+  const secret = ingestSecret();
+  if (!secret) throw new Error('INGEST_SECRET_NOT_CONFIGURED');
+
+  const ip = String(
+    context?.ip ||
+    req.headers.get('x-nf-client-connection-ip') ||
+    req.headers.get('cf-connecting-ip') ||
+    req.headers.get('x-forwarded-for')?.split(',')[0] ||
+    ''
+  ).trim();
+
+  const fingerprint = (await hmac(secret, 'network|' + ip.toLowerCase())).slice(0, 24);
+  const timestamp = String(Math.floor(Date.now() / 1000));
+  const signature = await hmac(secret, 'v1|' + timestamp + '|' + fingerprint + '|koa-mobile-bar-inquiry');
+
+  return {
+    'X-Koa-Mobile-Source': fingerprint,
+    'X-Koa-Mobile-Timestamp': timestamp,
+    'X-Koa-Mobile-Signature': signature
+  };
 }
 
 async function verifyTurnstile(token, remoteIp) {
@@ -168,11 +215,19 @@ export default async (req, context) => {
     }
   };
 
+  let sourceHeaders;
+  try {
+    sourceHeaders = await signedSourceHeaders(req, context);
+  } catch {
+    return Response.json({ error: 'Secure inquiry routing is temporarily unavailable.' }, { status: 503 });
+  }
+
   const crmResponse = await fetch('https://www.koasevents.com/api/crm/inquiries', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Koa-Inquiry-Capture': '1'
+      'X-Koa-Inquiry-Capture': '1',
+      ...sourceHeaders
     },
     body: JSON.stringify(crmPayload)
   });
@@ -186,6 +241,11 @@ export default async (req, context) => {
   return Response.json({ ok: true, id: crmResult.id });
 };
 
-export const config = {
-  path: '/api/mobile-bar-inquiry'
+export const config: Config = {
+  path: '/api/mobile-bar-inquiry',
+  rateLimit: {
+    windowLimit: 8,
+    windowSize: 60,
+    aggregateBy: ['ip'],
+  },
 };
