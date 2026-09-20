@@ -124,20 +124,26 @@ jobs:
           done
 
           if [ "$GITHUB_EVENT_NAME" = "push" ] && [ "$GITHUB_REF" = "refs/heads/main" ]; then
-            for i in {1..30}; do
-              if curl --fail --silent --show-error https://koasmobilebar.com/api/turnstile-config | grep -q '"siteKey"'; then
+            ready=0
+            for i in {1..45}; do
+              curl --fail --silent --show-error https://koasmobilebar.com/api/turnstile-config > /tmp/turnstile-config.json || true
+              if node -e "const fs=require('fs');try{const x=JSON.parse(fs.readFileSync('/tmp/turnstile-config.json','utf8'));process.exit(x.siteKey && x.crmHandoffConfigured === true ? 0 : 1)}catch{process.exit(1)}"; then
+                ready=1
                 break
               fi
               sleep 4
             done
-            curl --fail --silent --show-error https://koasmobilebar.com/api/turnstile-config | grep -q '"siteKey"'
-            curl --fail --silent --show-error https://koasmobilebar.com/api/turnstile-config | grep -q '"crmHandoffConfigured":true'
+            echo "Turnstile config:"
+            cat /tmp/turnstile-config.json
+            test "$ready" = "1"
 
             cross_status="$(curl --silent --output /tmp/cross-site-reject.json --write-out '%{http_code}' \
               -X POST https://koasmobilebar.com/api/mobile-bar-inquiry \
               -H 'Content-Type: application/json' \
               -H 'Origin: https://example.com' \
               --data '{}')"
+            echo "Cross-site rejection status: $cross_status"
+            cat /tmp/cross-site-reject.json
             test "$cross_status" = "403"
             grep -qi 'cross-site' /tmp/cross-site-reject.json
 
@@ -145,6 +151,8 @@ jobs:
               -X POST https://koasmobilebar.com/api/mobile-bar-inquiry \
               -H 'Content-Type: application/json' \
               --data '{"packageId":"mobile-oahu","customer":{"name":"QA","email":"qa@example.com","phone":"808-555-0100","eventDate":"2026-12-12"},"inquiry":{"eventLocation":"Hilo","eventType":"Birthday"}}')"
+            echo "Missing-token rejection status: $status"
+            cat /tmp/turnstile-reject.json
             test "$status" = "400"
             grep -qi 'verification' /tmp/turnstile-reject.json
           fi
