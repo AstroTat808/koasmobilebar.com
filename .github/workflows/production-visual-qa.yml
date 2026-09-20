@@ -6,11 +6,59 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 concurrency:
   group: production-visual-qa-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  bootstrap-visual-baselines:
+    name: Bootstrap Visual Baselines
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Detect approved baselines
+        id: baselines
+        run: |
+          if [ -d tests/production-qa.spec.js-snapshots ] && [ -n "$(find tests/production-qa.spec.js-snapshots -type f -name '*.png' -print -quit)" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-node@v4
+        if: steps.baselines.outputs.exists == 'false'
+        with:
+          node-version: 22
+      - run: npm install
+        if: steps.baselines.outputs.exists == 'false'
+      - run: npx playwright install --with-deps chromium
+        if: steps.baselines.outputs.exists == 'false'
+      - name: Start local static site
+        if: steps.baselines.outputs.exists == 'false'
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/koa-http.log 2>&1 &
+          for i in {1..20}; do
+            curl -fsS http://127.0.0.1:4173/ >/dev/null && break
+            sleep 1
+          done
+      - name: Generate approved visual baselines
+        if: steps.baselines.outputs.exists == 'false'
+        env:
+          BASE_URL: http://127.0.0.1:4173
+        run: npm run qa:visual:update
+      - name: Commit approved visual baselines
+        if: steps.baselines.outputs.exists == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/production-qa.spec.js-snapshots
+          git commit -m "Add approved visual regression baselines"
+          git push origin HEAD:main
+
   browser-qa:
     name: Browser QA
     runs-on: ubuntu-latest
@@ -45,6 +93,34 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
+  crm-handoff:
+    name: CRM Handoff Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate Koa's Events CRM round-trip
+        run: npm run qa:crm
+
+  production-smoke:
+    name: Production Endpoint Smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Wait for Netlify production and verify public endpoints
+        run: |
+          for i in {1..30}; do
+            if curl -fsS https://koasmobilebar.com/ >/dev/null; then break; fi
+            sleep 4
+          done
+          for url in             https://koasmobilebar.com/             https://koasmobilebar.com/services/             https://koasmobilebar.com/gallery/             https://koasmobilebar.com/favicon-16x16.png             https://koasmobilebar.com/favicon-32x32.png             https://koasmobilebar.com/apple-touch-icon.png             https://koasmobilebar.com/favicon-192x192.png             https://koasmobilebar.com/favicon-512x512.png             https://koasmobilebar.com/site.webmanifest
+          do
+            curl --fail --silent --show-error --location "$url" >/dev/null
+          done
+
   lighthouse:
     name: Lighthouse Gate
     runs-on: ubuntu-latest
@@ -60,14 +136,14 @@ jobs:
 
   release-certification:
     name: Release Certification
-    needs: [browser-qa, lighthouse]
+    needs: [browser-qa, lighthouse, crm-handoff, production-smoke]
     runs-on: ubuntu-latest
     if: always()
     steps:
       - name: Certify release
         run: |
-          if [ "${{ needs.browser-qa.result }}" != "success" ] || [ "${{ needs.lighthouse.result }}" != "success" ]; then
+          if [ "${{ needs.browser-qa.result }}" != "success" ] || [ "${{ needs.lighthouse.result }}" != "success" ] || [ "${{ needs.crm-handoff.result }}" != "success" ] || [ "${{ needs.production-smoke.result }}" != "success" ]; then
             echo "NO-GO: Production QA failed."
             exit 1
           fi
-          echo "GO: Browser QA and Lighthouse gates passed."
+          echo "GO: Browser QA, visual regression, Lighthouse, CRM handoff and production endpoint checks passed."
