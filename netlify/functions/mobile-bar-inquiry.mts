@@ -55,18 +55,6 @@ function calculateQuote(packageId, inquiry = {}) {
   };
 }
 
-function allowedHostname(hostname) {
-  const configured = Netlify.env.get('TURNSTILE_ALLOWED_HOSTNAMES');
-  const allowed = (configured || 'koasmobilebar.com,www.koasmobilebar.com')
-    .split(',')
-    .map(value => value.trim().toLowerCase())
-    .filter(Boolean);
-
-  const host = String(hostname || '').toLowerCase();
-  return allowed.some(rule => rule.startsWith('.') ? host.endsWith(rule) : host === rule);
-}
-
-
 function base64Url(bytes) {
   let binary = '';
   for (const byte of new Uint8Array(bytes)) binary += String.fromCharCode(byte);
@@ -110,22 +98,6 @@ async function signedSecurityHandoff(req, context) {
   return { fingerprint, timestamp, signature };
 }
 
-async function verifyTurnstile(token, remoteIp) {
-  const secret = Netlify.env.get('TURNSTILE_SECRET_KEY');
-  if (!secret) throw new Error('TURNSTILE_NOT_CONFIGURED');
-
-  const body = new URLSearchParams({ secret, response: token });
-  if (remoteIp) body.set('remoteip', remoteIp);
-
-  const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-    method: 'POST',
-    body
-  });
-
-  if (!response.ok) throw new Error('TURNSTILE_VERIFY_UNAVAILABLE');
-  return response.json();
-}
-
 export default async (req, context) => {
   if (req.method !== 'POST') {
     return Response.json({ error: 'Method not allowed' }, { status: 405 });
@@ -146,23 +118,6 @@ export default async (req, context) => {
     return Response.json({ error: 'Security verification is required.' }, { status: 400 });
   }
 
-  let verification;
-  try {
-    verification = await verifyTurnstile(body.turnstileToken, context?.ip);
-  } catch (error) {
-    const configurationError = error instanceof Error && error.message === 'TURNSTILE_NOT_CONFIGURED';
-    return Response.json(
-      { error: configurationError ? 'Security verification is not configured.' : 'Security verification is temporarily unavailable.' },
-      { status: configurationError ? 503 : 502 }
-    );
-  }
-
-  if (!verification.success ||
-      verification.action !== 'mobile_bar_inquiry' ||
-      !allowedHostname(verification.hostname)) {
-    return Response.json({ error: 'Security verification failed. Please try again.' }, { status: 403 });
-  }
-
   const packageId = String(body.packageId || '');
   let quote;
   try {
@@ -179,6 +134,7 @@ export default async (req, context) => {
 
   const crmPayload = {
     formName: 'koa-mobile-bar-inquiry',
+    turnstileToken: String(body.turnstileToken || '').slice(0, 2048),
     honeypot: '',
     packageId,
     customer: {
