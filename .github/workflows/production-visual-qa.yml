@@ -131,6 +131,15 @@ jobs:
               sleep 4
             done
             curl --fail --silent --show-error https://koasmobilebar.com/api/turnstile-config | grep -q '"siteKey"'
+            curl --fail --silent --show-error https://koasmobilebar.com/api/turnstile-config | grep -q '"crmHandoffConfigured":true'
+
+            cross_status="$(curl --silent --output /tmp/cross-site-reject.json --write-out '%{http_code}' \
+              -X POST https://koasmobilebar.com/api/mobile-bar-inquiry \
+              -H 'Content-Type: application/json' \
+              -H 'Origin: https://example.com' \
+              --data '{}')"
+            test "$cross_status" = "403"
+            grep -qi 'cross-site' /tmp/cross-site-reject.json
 
             status="$(curl --silent --output /tmp/turnstile-reject.json --write-out '%{http_code}' \
               -X POST https://koasmobilebar.com/api/mobile-bar-inquiry \
