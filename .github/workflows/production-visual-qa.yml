@@ -95,6 +95,18 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
+  security-qa:
+    name: Security Controls Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate Mobile Bar rate limits and signed security handoff
+        run: npm run qa:security
+
   crm-handoff:
     name: CRM Handoff Gate
     runs-on: ubuntu-latest
@@ -155,14 +167,14 @@ jobs:
 
   release-certification:
     name: Release Certification
-    needs: [browser-qa, lighthouse, crm-handoff, production-smoke]
+    needs: [browser-qa, lighthouse, security-qa, crm-handoff, production-smoke]
     runs-on: ubuntu-latest
     if: always()
     steps:
       - name: Certify release
         run: |
-          if [ "${{ needs.browser-qa.result }}" != "success" ] || [ "${{ needs.lighthouse.result }}" != "success" ] || [ "${{ needs.crm-handoff.result }}" != "success" ] || [ "${{ needs.production-smoke.result }}" != "success" ]; then
+          if [ "${{ needs.browser-qa.result }}" != "success" ] || [ "${{ needs.lighthouse.result }}" != "success" ] || [ "${{ needs.security-qa.result }}" != "success" ] || [ "${{ needs.crm-handoff.result }}" != "success" ] || [ "${{ needs.production-smoke.result }}" != "success" ]; then
             echo "NO-GO: Production QA failed."
             exit 1
           fi
-          echo "GO: Browser QA, visual regression, Lighthouse, CRM handoff and production endpoint checks passed."
+          echo "GO: Browser QA, visual regression, Lighthouse, security controls, CRM handoff and production endpoint checks passed."
