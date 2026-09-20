@@ -16,7 +16,7 @@ concurrency:
 jobs:
   bootstrap-visual-baselines:
     name: Bootstrap Visual Baselines
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -59,7 +59,11 @@ jobs:
           printf 'v2.2\n' > tests/production-qa.spec.js-snapshots/.baseline-version
           git add tests/production-qa.spec.js-snapshots
           git commit -m "Expand approved visual regression baselines"
-          git push origin HEAD:main
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git push origin HEAD:${{ github.head_ref }}
+          else
+            git push origin HEAD:main
+          fi
 
   browser-qa:
     name: Browser QA
