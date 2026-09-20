@@ -119,20 +119,39 @@ const fs = require('fs');
 const visualBaselineDir = 'tests/production-qa.spec.js-snapshots';
 
 test.describe('visual regression @visual', () => {
-  test.skip(!fs.existsSync(visualBaselineDir) && process.env.BOOTSTRAP_VISUAL !== '1', 'Approved visual baselines have not been bootstrapped yet.');
+  const baselineVersion = 'v2';
+  const baselineMarker = visualBaselineDir + '/.baseline-version';
+  const approved = fs.existsSync(visualBaselineDir) && fs.existsSync(baselineMarker) && fs.readFileSync(baselineMarker,'utf8').trim() === baselineVersion;
+  test.skip(!approved && process.env.BOOTSTRAP_VISUAL !== '1', 'Approved visual baselines have not been bootstrapped for ' + baselineVersion + '.');
 
   const visualPages = [
     ['home','/'],
     ['services','/services/'],
-    ['gallery','/gallery/'],
+    ['birthdays','/birthdays/'],
+    ['corporate-events','/corporate-events/'],
+    ['graduations','/graduations/'],
+    ['private-parties','/private-parties/'],
     ['weddings','/weddings/'],
-    ['service-areas','/service-areas/']
+    ['bartender-service','/bartender-service/'],
+    ['gallery','/gallery/'],
+    ['service-areas','/service-areas/'],
+    ['service-area-hilo','/service-areas/hilo/'],
+    ['service-area-kona','/service-areas/kona/'],
+    ['service-area-waimea','/service-areas/waimea/'],
+    ['service-area-puna','/service-areas/puna/'],
+    ['privacy','/privacy.html'],
+    ['terms','/terms.html'],
+    ['thank-you','/thank-you.html']
   ];
+
+  async function stabilize(page) {
+    await page.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}' });
+  }
 
   for (const [name,path] of visualPages) {
     test(name + ' approved baseline', async ({ page }) => {
       await page.goto(path, { waitUntil: 'networkidle' });
-      await page.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}' });
+      await stabilize(page);
       await expect(page).toHaveScreenshot(name + '.png', {
         fullPage: true,
         animations: 'disabled',
@@ -140,4 +159,95 @@ test.describe('visual regression @visual', () => {
       });
     });
   }
+
+  for (const packageId of ['mobile-oahu','mobile-maui','mobile-big-island']) {
+    test('package selection ' + packageId + ' baseline', async ({ page }) => {
+      await page.goto('/', { waitUntil: 'networkidle' });
+      await page.locator('[data-package-id="' + packageId + '"]').click();
+      await stabilize(page);
+      await expect(page.locator('#packages')).toHaveScreenshot('package-' + packageId + '.png', {
+        animations: 'disabled',
+        maxDiffPixelRatio: 0.005
+      });
+    });
+  }
+
+  test('calculator configured baseline', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'networkidle' });
+    const form=page.locator('[data-mobile-quote-form]');
+    await form.locator('select[name="package"]').selectOption('mobile-big-island');
+    await form.locator('input[name="guest-count"]').fill('150');
+    await form.locator('input[name="service-hours"]').fill('6');
+    await form.locator('input[name="bartender-count"]').fill('2');
+    await form.locator('input[name="one-way-miles"]').fill('42');
+    await form.locator('select[name="gratuity"]').selectOption('nojar-25');
+    await form.locator('input[name="glassware-count"]').fill('100');
+    await form.locator('input[name="addon-champagne-toast"]').check();
+    await form.locator('input[name="addon-custom"][value="Champagne Tower Wall"]').check();
+    await stabilize(page);
+    await expect(form.locator('.quote-calculator')).toHaveScreenshot('calculator-configured.png', {
+      animations: 'disabled',
+      maxDiffPixelRatio: 0.005
+    });
+  });
+
+  test('partially completed inquiry form baseline', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'networkidle' });
+    const form=page.locator('[data-mobile-quote-form]');
+    await form.locator('select[name="package"]').selectOption('mobile-oahu');
+    await form.locator('input[name="first-name"]').fill('Sample');
+    await form.locator('input[name="last-name"]').fill('Customer');
+    await form.locator('input[name="email"]').fill('sample@example.com');
+    await form.locator('input[name="phone"]').fill('808-555-0100');
+    await form.locator('input[name="event-location"]').fill('Hilo, Hawaiʻi');
+    await form.locator('select[name="event-type"]').selectOption({ label:'Birthday' });
+    await form.locator('textarea[name="details"]').fill('Tropical birthday celebration with a simple beer and wine menu.');
+    await stabilize(page);
+    await expect(form).toHaveScreenshot('inquiry-form-partial.png', {
+      animations: 'disabled',
+      maxDiffPixelRatio: 0.005
+    });
+  });
+
+  test('open FAQ baseline', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await page.locator('#faq details').first().locator('summary').click();
+    await stabilize(page);
+    await expect(page.locator('#faq')).toHaveScreenshot('faq-open.png', {
+      animations: 'disabled',
+      maxDiffPixelRatio: 0.005
+    });
+  });
+
+  test('gallery lightbox baseline', async ({ page }) => {
+    await page.goto('/gallery/', { waitUntil: 'networkidle' });
+    await page.locator('[data-lightbox]').first().click();
+    await expect(page.locator('#lightbox')).toHaveClass(/open/);
+    await stabilize(page);
+    await expect(page.locator('#lightbox')).toHaveScreenshot('gallery-lightbox.png', {
+      animations: 'disabled',
+      maxDiffPixelRatio: 0.005
+    });
+  });
+
+  test('gallery category filter baseline', async ({ page }) => {
+    await page.goto('/gallery/', { waitUntil: 'networkidle' });
+    await page.locator('.filter-btn[data-filter="actual"]').click();
+    await stabilize(page);
+    await expect(page.locator('.gallery-page')).toHaveScreenshot('gallery-filter-mobile-bar.png', {
+      animations: 'disabled',
+      maxDiffPixelRatio: 0.005
+    });
+  });
+
+  test('mobile navigation open baseline', async ({ page }, testInfo) => {
+    test.skip(!testInfo.project.name.startsWith('mobile-'), 'mobile-only visual state');
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await page.locator('.menu').click();
+    await stabilize(page);
+    await expect(page.locator('.site-header')).toHaveScreenshot('mobile-menu-open.png', {
+      animations: 'disabled',
+      maxDiffPixelRatio: 0.005
+    });
+  });
 });
