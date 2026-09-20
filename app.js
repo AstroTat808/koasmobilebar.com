@@ -47,11 +47,11 @@ form.querySelectorAll('.quote-calculator select,.quote-calculator input[type="ch
 
 const packageCards=[...document.querySelectorAll('.package-grid .package')];
 const packageIdFromCard=card=>String(card.dataset.packageId||'');
-function syncPackageCards(){const active=String(form.elements.package.value||'');packageCards.forEach(card=>{const selected=packageIdFromCard(card)===active;card.classList.toggle('is-selected',selected);card.setAttribute('aria-pressed',selected?'true':'false')})}
+function syncPackageCards(){const active=String(form.elements.package.value||'');packageCards.forEach(card=>{const selected=packageIdFromCard(card)===active;card.classList.toggle('is-selected',selected);const control=card.querySelector('.package-request');if(control)control.setAttribute('aria-pressed',selected?'true':'false')})}
 const quoteCalculator=form.querySelector('.quote-calculator');
 const reduceMotion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 function selectPackage(id,{scroll=true}={}){if(!id||!packagePrices.hasOwnProperty(id))return;form.elements.package.value=id;form.elements.package.dispatchEvent(new Event('change',{bubbles:true}));syncPackageCards();if(scroll&&quoteCalculator){requestAnimationFrame(()=>quoteCalculator.scrollIntoView({behavior:reduceMotion()?'auto':'smooth',block:'center'}))}}
-packageCards.forEach(card=>{const id=packageIdFromCard(card),link=card.querySelector('a[href*="#inquire"]');if(!id)return;card.addEventListener('click',event=>{if(event.target.closest('a'))return;selectPackage(id)});card.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();selectPackage(id)}});if(link)link.addEventListener('click',event=>{event.preventDefault();selectPackage(id)})});
+packageCards.forEach(card=>{const id=packageIdFromCard(card),control=card.querySelector('.package-request');if(!id)return;card.addEventListener('click',event=>{if(event.target.closest('button'))return;selectPackage(id)});if(control)control.addEventListener('click',()=>selectPackage(id))});
 form.elements.package.addEventListener('change',syncPackageCards);
 calculate();syncPackageCards();
 let submitting=false;
