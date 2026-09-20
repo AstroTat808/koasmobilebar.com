@@ -66,6 +66,50 @@ function allowedHostname(hostname) {
   return allowed.some(rule => rule.startsWith('.') ? host.endsWith(rule) : host === rule);
 }
 
+
+function base64Url(bytes) {
+  let binary = '';
+  for (const byte of new Uint8Array(bytes)) binary += String.fromCharCode(byte);
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+}
+
+async function hmacValue(secret, value) {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(value));
+  return base64Url(signature);
+}
+
+function clientIp(req, context) {
+  return String(
+    req.headers.get('x-nf-client-connection-ip') ||
+    req.headers.get('cf-connecting-ip') ||
+    req.headers.get('x-forwarded-for')?.split(',')[0] ||
+    context?.ip ||
+    ''
+  ).trim().slice(0, 80);
+}
+
+async function signedSecurityHandoff(req, context) {
+  const secret = Netlify.env.get('TURNSTILE_SECRET_KEY');
+  if (!secret) return null;
+
+  const ip = clientIp(req, context).toLowerCase();
+  if (!ip) return null;
+
+  const fingerprint = (await hmacValue(secret, ip)).slice(0, 24);
+  const timestamp = Math.floor(Date.now() / 1000).toString();
+  const signature = await hmacValue(secret, 'mobile-bar|' + fingerprint + '|' + timestamp);
+
+  return { fingerprint, timestamp, signature };
+}
+
 async function verifyTurnstile(token, remoteIp) {
   const secret = Netlify.env.get('TURNSTILE_SECRET_KEY');
   if (!secret) throw new Error('TURNSTILE_NOT_CONFIGURED');
@@ -168,11 +212,18 @@ export default async (req, context) => {
     }
   };
 
+  const securityHandoff = await signedSecurityHandoff(req, context);
+
   const crmResponse = await fetch('https://www.koasevents.com/api/crm/inquiries', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Koa-Inquiry-Capture': '1'
+      'X-Koa-Inquiry-Capture': '1',
+      ...(securityHandoff ? {
+        'X-Koa-Source-Fingerprint': securityHandoff.fingerprint,
+        'X-Koa-Source-Timestamp': securityHandoff.timestamp,
+        'X-Koa-Source-Signature': securityHandoff.signature,
+      } : {})
     },
     body: JSON.stringify(crmPayload)
   });
@@ -187,5 +238,10 @@ export default async (req, context) => {
 };
 
 export const config = {
-  path: '/api/mobile-bar-inquiry'
+  path: '/api/mobile-bar-inquiry',
+  rateLimit: {
+    windowLimit: 8,
+    windowSize: 60,
+    aggregateBy: ['ip'],
+  },
 };
