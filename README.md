@@ -60,12 +60,23 @@ Standard service baseline:
 
 - Up to 100 guests
 - Four hours of service
-- Additional guests: $8 each
-- Additional service hour: $200
+- Additional guests over 100: Oahu $10 each, Maui $12 each, Big Island $15 each
+- Additional service hour: $200 plus bartender labor
 - Bartender labor: $65/hour per bartender
-- Travel beyond the included radius: $1.50 per round-trip mile
-- Glassware: $1.50 per piece
-- Champagne Toast: starting at $70
+- Travel beyond the included radius: $2.00 per excess round-trip mile; +$150 when the event is more than 60 miles one-way
+- Standard glassware: $3.00 per piece; premium/specialty glassware: $4.50 per piece
+- Champagne Toast: $150 up to 50 guests, then +$3 per guest
+- Champagne Tower Wall: $350 minimum
+- Upgraded Toss-Ware: $2 per guest, $100 minimum
+- Vinyl Logo: $150 minimum
+- Personalized Stirrers: $3 per guest, $175 minimum
+- Drink Accessories: $125 minimum
+- Balloon Garland: $350 minimum
+- Soda Station: $4 per guest, $200 minimum
+- Juice / Punch Station: $5 per guest, $250 minimum
+- Coffee Bar: $6 per guest, $300 minimum
+- Bar Décor: $250 minimum
+- Acrylic Bar Menu: $125 minimum
 - Dry-bar model: client supplies alcohol
 
 The homepage quote calculator reflects the currently published rules and identifies custom-priced enhancements separately.

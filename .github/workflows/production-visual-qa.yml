@@ -24,7 +24,7 @@ jobs:
       - name: Detect approved baselines
         id: baselines
         run: |
-          if [ -f tests/production-qa.spec.js-snapshots/.baseline-version ] && [ "$(cat tests/production-qa.spec.js-snapshots/.baseline-version)" = "v2.8" ]; then
+          if [ -f tests/production-qa.spec.js-snapshots/.baseline-version ] && [ "$(cat tests/production-qa.spec.js-snapshots/.baseline-version)" = "v2.9" ]; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
@@ -56,7 +56,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          printf 'v2.8\n' > tests/production-qa.spec.js-snapshots/.baseline-version
+          printf 'v2.9\n' > tests/production-qa.spec.js-snapshots/.baseline-version
           git add tests/production-qa.spec.js-snapshots
           git commit -m "Expand approved visual regression baselines"
           git push origin HEAD:main

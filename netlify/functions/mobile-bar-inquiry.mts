@@ -14,6 +14,13 @@ const PACKAGE_NAMES = {
   'mobile-custom': 'Custom / bartender-only'
 };
 
+const EXTRA_GUEST_RATES = {
+  'mobile-oahu': 10,
+  'mobile-maui': 12,
+  'mobile-big-island': 15,
+  'mobile-custom': 0
+};
+
 const clampNumber = (value, min, max, fallback) => {
   const number = Number(value);
   return Number.isFinite(number) ? Math.min(max, Math.max(min, number)) : fallback;
@@ -28,35 +35,63 @@ function calculateQuote(packageId, inquiry = {}) {
   const bartenders = Math.round(clampNumber(inquiry.bartenderCount, 1, 10, 1));
   const oneWayMiles = clampNumber(inquiry.oneWayMiles, 0, 500, 0);
   const glassware = Math.round(clampNumber(inquiry.glasswareCount, 0, 2000, 0));
+  const glasswareType = inquiry.glasswareType === 'premium' ? 'premium' : 'standard';
   const gratuityMode = ['later','tipjar-10','nojar-25'].includes(inquiry.gratuityMode) ? inquiry.gratuityMode : 'later';
 
-  const extraGuests = Math.max(0, guests - 100) * 8;
+  const guestRate = EXTRA_GUEST_RATES[packageId] || 0;
+  const extraGuestCount = Math.max(0, guests - 100);
+  const extraGuests = extraGuestCount * guestRate;
   const extraHours = Math.max(0, hours - 4) * 200;
   const labor = hours * bartenders * 65;
-  const travel = Math.max(0, oneWayMiles - 20) * 2 * 1.5;
+  const excessRoundTripMiles = Math.max(0, oneWayMiles - 20) * 2;
+  const travel = excessRoundTripMiles * 2;
+  const longDistanceLogistics = oneWayMiles > 60 ? 150 : 0;
   const gratuityRate = gratuityMode === 'tipjar-10' ? .10 : gratuityMode === 'nojar-25' ? .25 : 0;
   const gratuity = labor * gratuityRate;
-  const glasswareTotal = glassware * 1.5;
-  const toast = inquiry.champagneToast ? 70 : 0;
+  const glasswareRate = glasswareType === 'premium' ? 4.5 : 3;
+  const glasswareTotal = glassware * glasswareRate;
+  const toast = inquiry.champagneToast ? 150 + Math.max(0, guests - 50) * 3 : 0;
+  const tower = inquiry.champagneTower ? 350 : 0;
+  const tossware = inquiry.upgradedTossware ? Math.max(100, guests * 2) : 0;
+  const vinyl = inquiry.vinylLogo ? 150 : 0;
+  const stirrers = inquiry.personalizedStirrers ? Math.max(175, guests * 3) : 0;
+  const accessories = inquiry.drinkAccessories ? 125 : 0;
+  const balloons = inquiry.balloonGarland ? 350 : 0;
+  const soda = inquiry.sodaStation ? Math.max(200, guests * 4) : 0;
+  const juice = inquiry.juicePunchStation ? Math.max(250, guests * 5) : 0;
+  const coffee = inquiry.coffeeBar ? Math.max(300, guests * 6) : 0;
+  const decor = inquiry.barDecor ? 250 : 0;
+  const acrylic = inquiry.acrylicBarMenu ? 125 : 0;
 
   const lines = [
     { id:'package', description:PACKAGE_NAMES[packageId], quantity:1, unitPrice:base, amount:base, custom:packageId === 'mobile-custom' },
-    ...(extraGuests ? [{ id:'extra-guests', description:'Additional guests over 100', quantity:Math.max(0, guests-100), unitPrice:8, amount:extraGuests, custom:false }] : []),
+    ...(extraGuests ? [{ id:'extra-guests', description:'Additional guests over 100', quantity:extraGuestCount, unitPrice:guestRate, amount:extraGuests, custom:false }] : []),
     ...(extraHours ? [{ id:'extra-hours', description:'Additional service hours over 4', quantity:Math.max(0, hours-4), unitPrice:200, amount:extraHours, custom:false }] : []),
     { id:'bartender-labor', description:'Bartender labor', quantity:bartenders, unitPrice:hours*65, amount:labor, custom:false },
-    ...(travel ? [{ id:'travel', description:'Travel beyond 20-mile included radius (round trip)', quantity:Math.max(0,(oneWayMiles-20)*2), unitPrice:1.5, amount:travel, custom:false }] : []),
+    ...(travel ? [{ id:'travel', description:'Excess travel mileage (round trip)', quantity:excessRoundTripMiles, unitPrice:2, amount:travel, custom:false }] : []),
+    ...(longDistanceLogistics ? [{ id:'long-distance-logistics', description:'Long-distance logistics fee', quantity:1, unitPrice:150, amount:150, custom:false }] : []),
     ...(gratuity ? [{ id:'gratuity', description:gratuityMode === 'tipjar-10' ? 'Bartender gratuity (10% + tip jar)' : 'Bartender gratuity (25% + no tip jar)', quantity:1, unitPrice:gratuity, amount:gratuity, custom:false }] : []),
-    ...(glassware ? [{ id:'glassware', description:'Glassware', quantity:glassware, unitPrice:1.5, amount:glasswareTotal, custom:false }] : []),
-    ...(toast ? [{ id:'champagne-toast', description:'Champagne Toast', quantity:1, unitPrice:70, amount:70, custom:false }] : [])
+    ...(glassware ? [{ id:'glassware-' + glasswareType, description:(glasswareType === 'premium' ? 'Premium / specialty' : 'Standard') + ' glassware', quantity:glassware, unitPrice:glasswareRate, amount:glasswareTotal, custom:false }] : []),
+    ...(toast ? [{ id:'champagne-toast', description:'Champagne Toast', quantity:1, unitPrice:toast, amount:toast, custom:false }] : []),
+    ...(tower ? [{ id:'champagne-tower', description:'Champagne Tower Wall', quantity:1, unitPrice:350, amount:tower, custom:false }] : []),
+    ...(tossware ? [{ id:'upgraded-tossware', description:'Upgraded Toss-Ware', quantity:1, unitPrice:tossware, amount:tossware, custom:false }] : []),
+    ...(vinyl ? [{ id:'vinyl-logo', description:'Vinyl Logo', quantity:1, unitPrice:150, amount:vinyl, custom:false }] : []),
+    ...(stirrers ? [{ id:'personalized-stirrers', description:'Personalized Stirrers', quantity:1, unitPrice:stirrers, amount:stirrers, custom:false }] : []),
+    ...(accessories ? [{ id:'drink-accessories', description:'Drink Accessories', quantity:1, unitPrice:125, amount:accessories, custom:false }] : []),
+    ...(balloons ? [{ id:'balloon-garland', description:'Balloon Garland', quantity:1, unitPrice:350, amount:balloons, custom:false }] : []),
+    ...(soda ? [{ id:'soda-station', description:'Soda Station', quantity:1, unitPrice:soda, amount:soda, custom:false }] : []),
+    ...(juice ? [{ id:'juice-punch-station', description:'Juice / Punch Station', quantity:1, unitPrice:juice, amount:juice, custom:false }] : []),
+    ...(coffee ? [{ id:'coffee-bar', description:'Coffee Bar', quantity:1, unitPrice:coffee, amount:coffee, custom:false }] : []),
+    ...(decor ? [{ id:'bar-decor', description:'Bar Décor', quantity:1, unitPrice:250, amount:decor, custom:false }] : []),
+    ...(acrylic ? [{ id:'acrylic-bar-menu', description:'Acrylic Bar Menu', quantity:1, unitPrice:125, amount:acrylic, custom:false }] : [])
   ];
 
   return {
-    guests, hours, bartenders, oneWayMiles, glassware, gratuityMode,
+    guests, hours, bartenders, oneWayMiles, glassware, glasswareType, gratuityMode,
     lines,
     total: Math.round(lines.reduce((sum, line) => sum + Number(line.amount || 0), 0) * 100) / 100
   };
 }
-
 function allowedHostname(hostname) {
   const configured = Netlify.env.get('TURNSTILE_ALLOWED_HOSTNAMES');
   const allowed = (configured || 'koasmobilebar.com,www.koasmobilebar.com')
@@ -231,10 +266,11 @@ export default async (req, context) => {
       bartenderCount: quote.bartenders,
       gratuityMode: quote.gratuityMode,
       glasswareCount: quote.glassware,
+      glasswareType: quote.glasswareType,
       estimatedTotal: quote.total,
       estimateLineItems: quote.lines,
       customAddOns: Array.isArray(inquiry.customAddOns) ? inquiry.customAddOns.slice(0, 20).map(value => String(value).slice(0, 120)) : [],
-      calculatorVersion: 'mobile-bar-v1'
+      calculatorVersion: 'mobile-bar-v2'
     }
   };
 
