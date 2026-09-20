@@ -154,7 +154,7 @@ const fs = require('fs');
 const visualBaselineDir = 'tests/production-qa.spec.js-snapshots';
 
 test.describe('visual regression @visual', () => {
-  const baselineVersion = 'v2.2';
+  const baselineVersion = 'v2.3';
   const baselineMarker = visualBaselineDir + '/.baseline-version';
   const approved = fs.existsSync(visualBaselineDir) && fs.existsSync(baselineMarker) && fs.readFileSync(baselineMarker,'utf8').trim() === baselineVersion;
   test.skip(!approved && process.env.BOOTSTRAP_VISUAL !== '1', 'Approved visual baselines have not been bootstrapped for ' + baselineVersion + '.');
@@ -188,6 +188,7 @@ test.describe('visual regression @visual', () => {
       if(submit)submit.disabled=false;
       const status=form.querySelector('[data-crm-status]');
       if(status){status.textContent='Submitting creates a Mobile Bar inquiry in the Koa\'s Events CRM and does not reserve your date.';delete status.dataset.state;}
+      form.querySelectorAll('.is-updated').forEach(el=>el.classList.remove('is-updated'));
     });
   }
 
