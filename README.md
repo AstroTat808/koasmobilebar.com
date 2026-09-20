@@ -105,6 +105,8 @@ The Netlify project requires these environment variables:
 - `TURNSTILE_ALLOWED_HOSTNAMES` — optional comma-separated hostname allowlist. Defaults to `koasmobilebar.com,www.koasmobilebar.com`.
 
 Create the production Turnstile widget for `koasmobilebar.com` and `www.koasmobilebar.com`. The form fails closed if Turnstile is unavailable or misconfigured; there is no unverified Netlify Forms fallback.
+Turnstile production credentials are configured in Netlify environment variables; secrets are not stored in the repository.
+
 
 ## Front-End Structure
 
