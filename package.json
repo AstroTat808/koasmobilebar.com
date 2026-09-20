@@ -1,0 +1,16 @@
+{
+  "name": "koasmobilebar.com",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Koa's Mobile Bar — Hawaiʻi Island mobile bar service website.",
+  "scripts": {
+    "qa": "playwright test",
+    "qa:prod": "BASE_URL=https://koasmobilebar.com playwright test",
+    "qa:lighthouse": "lhci autorun --config=.lighthouserc.json"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
+    "@lhci/cli": "^0.15.1",
+    "@playwright/test": "^1.55.0"
+  }
+}
