@@ -62,7 +62,7 @@ Standard service baseline:
 - Four hours of service
 - Additional guests: $8 each
 - Additional service hour: $200
-- Bartender labor: $40/hour per bartender
+- Bartender labor: $65/hour per bartender
 - Travel beyond the included radius: $1.50 per round-trip mile
 - Glassware: $1.50 per piece
 - Champagne Toast: starting at $70
