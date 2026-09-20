@@ -1,6 +1,14 @@
 const { test, expect } = require('@playwright/test');
 const AxeBuilder = require('@axe-core/playwright').default;
 
+test.beforeEach(async ({ page }) => {
+  await page.route('https://challenges.cloudflare.com/**', route => route.fulfill({
+    status: 200,
+    contentType: 'application/javascript',
+    body: 'window.turnstile={render:()=>1,reset:()=>{}};'
+  }));
+});
+
 const pages = [
   '/',
   '/services/',
@@ -146,7 +154,7 @@ const fs = require('fs');
 const visualBaselineDir = 'tests/production-qa.spec.js-snapshots';
 
 test.describe('visual regression @visual', () => {
-  const baselineVersion = 'v2.1';
+  const baselineVersion = 'v2.2';
   const baselineMarker = visualBaselineDir + '/.baseline-version';
   const approved = fs.existsSync(visualBaselineDir) && fs.existsSync(baselineMarker) && fs.readFileSync(baselineMarker,'utf8').trim() === baselineVersion;
   test.skip(!approved && process.env.BOOTSTRAP_VISUAL !== '1', 'Approved visual baselines have not been bootstrapped for ' + baselineVersion + '.');
