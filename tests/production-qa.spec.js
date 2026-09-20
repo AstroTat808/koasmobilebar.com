@@ -71,10 +71,12 @@ test('homepage metadata, favicon package and quote calculator', async ({ page, r
 test('internal links return non-error responses', async ({ page, request }) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   const hrefs = await page.locator('a[href]').evaluateAll(nodes => [...new Set(nodes.map(a => a.getAttribute('href')).filter(Boolean))]);
+  const base = process.env.BASE_URL || 'https://koasmobilebar.com';
+  const baseOrigin = new URL(base).origin;
   for (const href of hrefs) {
     if (/^(mailto:|tel:|javascript:|#)/i.test(href)) continue;
-    const url = new URL(href, 'https://koasmobilebar.com');
-    if (url.origin !== 'https://koasmobilebar.com') continue;
+    const url = new URL(href, base);
+    if (url.origin !== baseOrigin) continue;
     const r = await request.get(url.href);
     expect(r.status(), href).toBeLessThan(400);
   }
