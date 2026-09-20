@@ -408,8 +408,9 @@ test.describe('visual regression @visual', () => {
     await form.locator('input[name="one-way-miles"]').fill('42');
     await form.locator('select[name="gratuity"]').selectOption('nojar-25');
     await form.locator('input[name="glassware-count"]').fill('100');
+    await form.locator('select[name="glassware-type"]').selectOption('premium');
     await form.locator('input[name="addon-champagne-toast"]').check();
-    await form.locator('input[name="addon-custom"][value="Champagne Tower Wall"]').check();
+    await form.locator('input[name="addon-champagne-tower"]').check();
     await stabilize(page);
     await expect(form.locator('.quote-calculator')).toHaveScreenshot('calculator-configured.png', {
       animations: 'disabled',
