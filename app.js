@@ -55,17 +55,104 @@ packageCards.forEach(card=>{const id=packageIdFromCard(card),control=card.queryS
 form.elements.package.addEventListener('change',syncPackageCards);
 calculate();syncPackageCards();
 let submitting=false;
-form.addEventListener('submit',async event=>{
- if(submitting)return;
- event.preventDefault();
- const estimate=calculate();const data=new FormData(form);const status=form.querySelector('[data-crm-status]');
- if(status)status.textContent='Sending your estimate to Koa\'s…';
- const customer={name:[data.get('first-name'),data.get('last-name')].filter(Boolean).join(' '),email:data.get('email'),phone:data.get('phone'),eventDate:data.get('event-date'),notes:data.get('details')};
+let turnstileToken='';
+let turnstileWidgetId=null;
+const turnstileBox=form.querySelector('[data-turnstile]');
+const submitButton=form.querySelector('button[type="submit"]');
+const formStatus=form.querySelector('[data-crm-status]');
+const setStatus=(message,state='')=>{if(!formStatus)return;formStatus.textContent=message;if(state)formStatus.dataset.state=state;else delete formStatus.dataset.state;};
+const setSubmitEnabled=enabled=>{if(submitButton)submitButton.disabled=!enabled;};
+
+async function initTurnstile(){
+ if(!turnstileBox)return;
+ setSubmitEnabled(false);
+ setStatus('Loading secure verification…');
  try{
-  const response=await fetch('https://www.koasevents.com/api/crm/inquiries',{method:'POST',headers:{'Content-Type':'application/json','X-Koa-Inquiry-Capture':'1'},body:JSON.stringify({formName:'koa-mobile-bar-inquiry',honeypot:data.get('company-website'),packageId:estimate.packageId,customer,inquiry:{service:'mobile-bar',eventType:data.get('event-type'),guestCount:estimate.guests,budget:data.get('event-budget'),mobileBarPackage:estimate.packageId,eventLocation:data.get('event-location'),priorities:data.get('details'),source:data.get('referral-source'),referralSource:data.get('referral-source'),alternativeDate:data.get('alternative-date'),contactMethod:data.get('contact-method'),serviceHours:estimate.hours,oneWayMiles:estimate.oneWayMiles,bartenderCount:estimate.bartenders,gratuityMode:estimate.gratuityMode,glasswareCount:estimate.glassware,estimatedTotal:estimate.total,estimateLineItems:estimate.lines,customAddOns:estimate.custom,calculatorVersion:'mobile-bar-v1'}}),keepalive:true});
+  const response=await fetch('/api/turnstile-config',{headers:{Accept:'application/json'}});
+  const config=await response.json().catch(()=>({}));
+  if(!response.ok||!config.siteKey)throw new Error('Turnstile is not configured');
+  for(let i=0;i<80&&!window.turnstile;i++)await new Promise(resolve=>setTimeout(resolve,50));
+  if(!window.turnstile)throw new Error('Turnstile failed to load');
+  turnstileWidgetId=window.turnstile.render(turnstileBox,{
+   sitekey:config.siteKey,
+   action:config.action||'mobile_bar_inquiry',
+   theme:'light',
+   size:'flexible',
+   callback:token=>{turnstileToken=token;setSubmitEnabled(true);setStatus('Security check complete. Your inquiry is ready to send.','ready');},
+   'expired-callback':()=>{turnstileToken='';setSubmitEnabled(false);setStatus('Security check expired. Complete it again to send your inquiry.','error');},
+   'error-callback':()=>{turnstileToken='';setSubmitEnabled(false);setStatus('Security verification could not complete. Refresh the check and try again.','error');}
+  });
+ }catch(error){
+  console.warn('Turnstile unavailable',error);
+  turnstileBox.textContent='Secure verification is temporarily unavailable.';
+  setSubmitEnabled(false);
+  setStatus('Secure verification is required before this inquiry can be sent.','error');
+ }
+}
+initTurnstile();
+
+form.addEventListener('submit',async event=>{
+ event.preventDefault();
+ if(submitting)return;
+ if(!turnstileToken){
+  setStatus('Complete the security check before sending your inquiry.','error');
+  turnstileBox?.scrollIntoView({behavior:reduceMotion()?'auto':'smooth',block:'center'});
+  return;
+ }
+ const estimate=calculate();
+ const data=new FormData(form);
+ submitting=true;
+ setSubmitEnabled(false);
+ setStatus('Securely sending your estimate to Koa\'s…');
+ const payload={
+  turnstileToken,
+  honeypot:data.get('company-website'),
+  packageId:estimate.packageId,
+  customer:{
+   name:[data.get('first-name'),data.get('last-name')].filter(Boolean).join(' '),
+   email:data.get('email'),
+   phone:data.get('phone'),
+   eventDate:data.get('event-date'),
+   notes:data.get('details')
+  },
+  inquiry:{
+   service:'mobile-bar',
+   eventType:data.get('event-type'),
+   guestCount:estimate.guests,
+   budget:data.get('event-budget'),
+   mobileBarPackage:estimate.packageId,
+   eventLocation:data.get('event-location'),
+   priorities:data.get('details'),
+   source:data.get('referral-source'),
+   referralSource:data.get('referral-source'),
+   alternativeDate:data.get('alternative-date'),
+   contactMethod:data.get('contact-method'),
+   serviceHours:estimate.hours,
+   oneWayMiles:estimate.oneWayMiles,
+   bartenderCount:estimate.bartenders,
+   gratuityMode:estimate.gratuityMode,
+   glasswareCount:estimate.glassware,
+   customAddOns:estimate.custom,
+   champagneToast:Boolean(data.get('addon-champagne-toast'))
+  }
+ };
+ try{
+  const response=await fetch('/api/mobile-bar-inquiry',{
+   method:'POST',
+   headers:{'Content-Type':'application/json','Accept':'application/json'},
+   body:JSON.stringify(payload)
+  });
   const result=await response.json().catch(()=>({}));
-  if(response.ok&&result.id)form.elements['crm-record-id'].value=result.id;
- }catch(error){console.warn('CRM capture unavailable',error)}
- submitting=true;if(status)status.textContent='Estimate saved. Finishing your inquiry…';form.submit();
+  if(!response.ok)throw new Error(result.error||'Inquiry could not be submitted');
+  if(result.id&&form.elements['crm-record-id'])form.elements['crm-record-id'].value=result.id;
+  location.assign('/thank-you.html');
+ }catch(error){
+  console.warn('Secure inquiry submission failed',error);
+  submitting=false;
+  turnstileToken='';
+  if(window.turnstile&&turnstileWidgetId!==null)window.turnstile.reset(turnstileWidgetId);
+  setSubmitEnabled(false);
+  setStatus(error.message||'We could not send the inquiry. Complete the security check again and retry.','error');
+ }
 });
 })();
