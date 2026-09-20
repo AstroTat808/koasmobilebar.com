@@ -49,6 +49,7 @@ jobs:
         if: steps.baselines.outputs.exists == 'false'
         env:
           BASE_URL: http://127.0.0.1:4173
+          BOOTSTRAP_VISUAL: '1'
         run: npm run qa:visual:update
       - name: Commit approved visual baselines
         if: steps.baselines.outputs.exists == 'false'
