@@ -34,7 +34,7 @@ function calculate(){
  ];
  const total=lines.reduce((sum,line)=>sum+Number(line.amount||0),0);
  const custom=customSelections();
- const totalEl=form.querySelector('[data-estimate-total]');if(totalEl)totalEl.textContent=money(total);
+ const totalEl=form.querySelector('[data-estimate-total]');if(totalEl){const next=money(total);if(totalEl.textContent!==next){totalEl.textContent=next;const panel=totalEl.closest('.estimate-panel');if(panel){panel.classList.remove('is-updated');requestAnimationFrame(()=>panel.classList.add('is-updated'));setTimeout(()=>panel.classList.remove('is-updated'),420)}}}
  const customEl=form.querySelector('[data-estimate-custom]');if(customEl)customEl.textContent=custom.length?'Plus custom pricing for: '+custom.join(', '):packageId==='mobile-custom'?'Package/service base price requires custom review.':'';
  const linesEl=form.querySelector('[data-estimate-lines]');if(linesEl){linesEl.innerHTML='';lines.filter(line=>line.amount>0).forEach(line=>{const row=document.createElement('div');const label=document.createElement('span');label.textContent=line.description;const amount=document.createElement('strong');amount.textContent=money(line.amount);row.append(label,amount);linesEl.appendChild(row)})}
  form.elements['estimated-total'].value=String(Math.round(total*100)/100);
@@ -43,7 +43,13 @@ function calculate(){
 }
 form.querySelectorAll('.quote-calculator input,.quote-calculator select').forEach(el=>el.addEventListener('input',calculate));
 form.querySelectorAll('.quote-calculator select,.quote-calculator input[type="checkbox"]').forEach(el=>el.addEventListener('change',calculate));
-calculate();
+
+const packageCards=[...document.querySelectorAll('.package-grid .package')];
+const packageIdFromCard=card=>{const tag=(card.querySelector('.tag')?.textContent||'').toLowerCase();if(tag.includes('oahu'))return 'mobile-oahu';if(tag.includes('maui'))return 'mobile-maui';if(tag.includes('big island'))return 'mobile-big-island';return null};
+function syncPackageCards(){const active=String(form.elements.package.value||'');packageCards.forEach(card=>card.classList.toggle('is-selected',packageIdFromCard(card)===active))}
+packageCards.forEach(card=>{const id=packageIdFromCard(card),link=card.querySelector('a[href*="#inquire"]');if(id&&link){link.addEventListener('click',()=>{form.elements.package.value=id;form.elements.package.dispatchEvent(new Event('change',{bubbles:true}));syncPackageCards()})}});
+form.elements.package.addEventListener('change',syncPackageCards);
+calculate();syncPackageCards();
 let submitting=false;
 form.addEventListener('submit',async event=>{
  if(submitting)return;
