@@ -6,7 +6,8 @@ const money=v=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',ma
 const val=(name,fallback=0)=>{const el=form.elements[name];const n=Number(el?.value);return Number.isFinite(n)?n:fallback};
 const customSelections=()=>[...form.querySelectorAll('input[name="addon-custom"]:checked')].map(el=>el.value);
 function calculate(){
- const packageId=String(form.elements.package.value||'mobile-custom');
+ const packageId=String(form.elements.package.value||'');
+ const packageChosen=Boolean(packageId);
  const base=packagePrices[packageId]||0;
  const guests=Math.max(1,Math.round(val('guest-count',100)));
  const hours=Math.max(1,val('service-hours',4));
@@ -22,7 +23,7 @@ function calculate(){
  const gratuity=labor*gratuityRate;
  const glasswareTotal=glassware*1.5;
  const toast=form.elements['addon-champagne-toast']?.checked?70:0;
- const lines=[
+ const lines=packageChosen?[
   {id:'package',description:packageNames[packageId]||'Mobile Bar package',quantity:1,unitPrice:base,amount:base,custom:packageId==='mobile-custom'},
   ...(extraGuests?[{id:'extra-guests',description:'Additional guests over 100',quantity:Math.max(0,guests-100),unitPrice:8,amount:extraGuests,custom:false}]:[]),
   ...(extraHours?[{id:'extra-hours',description:'Additional service hours over 4',quantity:Math.max(0,hours-4),unitPrice:200,amount:extraHours,custom:false}]:[]),
@@ -31,13 +32,13 @@ function calculate(){
   ...(gratuity?[{id:'gratuity',description:gratuityMode==='tipjar-10'?'Bartender gratuity (10% + tip jar)':'Bartender gratuity (25% + no tip jar)',quantity:1,unitPrice:gratuity,amount:gratuity,custom:false}]:[]),
   ...(glassware?[{id:'glassware',description:'Glassware',quantity:glassware,unitPrice:1.5,amount:glasswareTotal,custom:false}]:[]),
   ...(toast?[{id:'champagne-toast',description:'Champagne Toast',quantity:1,unitPrice:70,amount:70,custom:false}]:[])
- ];
+ ]:[];
  const total=lines.reduce((sum,line)=>sum+Number(line.amount||0),0);
  const custom=customSelections();
- const totalEl=form.querySelector('[data-estimate-total]');if(totalEl){const next=money(total);if(totalEl.textContent!==next){totalEl.textContent=next;const panel=totalEl.closest('.estimate-panel');if(panel){panel.classList.remove('is-updated');requestAnimationFrame(()=>panel.classList.add('is-updated'));setTimeout(()=>panel.classList.remove('is-updated'),420)}}}
- const customEl=form.querySelector('[data-estimate-custom]');if(customEl)customEl.textContent=custom.length?'Plus custom pricing for: '+custom.join(', '):packageId==='mobile-custom'?'Package/service base price requires custom review.':'';
+ const totalEl=form.querySelector('[data-estimate-total]');if(totalEl){const next=packageChosen?money(total):'Select a package';if(totalEl.textContent!==next){totalEl.textContent=next;const panel=totalEl.closest('.estimate-panel');if(panel){panel.classList.remove('is-updated');requestAnimationFrame(()=>panel.classList.add('is-updated'));setTimeout(()=>panel.classList.remove('is-updated'),420)}}}
+ const customEl=form.querySelector('[data-estimate-custom]');if(customEl)customEl.textContent=!packageChosen?'Choose Oahu, Maui, Big Island or Custom to begin your estimate.':custom.length?'Plus custom pricing for: '+custom.join(', '):packageId==='mobile-custom'?'Package/service base price requires custom review.':'';
  const linesEl=form.querySelector('[data-estimate-lines]');if(linesEl){linesEl.innerHTML='';lines.filter(line=>line.amount>0).forEach(line=>{const row=document.createElement('div');const label=document.createElement('span');label.textContent=line.description;const amount=document.createElement('strong');amount.textContent=money(line.amount);row.append(label,amount);linesEl.appendChild(row)})}
- form.elements['estimated-total'].value=String(Math.round(total*100)/100);
+ form.elements['estimated-total'].value=packageChosen?String(Math.round(total*100)/100):'';
  form.elements['estimate-breakdown'].value=JSON.stringify({version:'mobile-bar-v1',packageId,guestCount:guests,serviceHours:hours,bartenderCount:bartenders,oneWayMiles,gratuityMode,glasswareCount:glassware,total,lines,customAddOns:custom});
  return {packageId,guests,hours,bartenders,oneWayMiles,gratuityMode,glassware,total,lines,custom};
 }
@@ -45,9 +46,10 @@ form.querySelectorAll('.quote-calculator input,.quote-calculator select').forEac
 form.querySelectorAll('.quote-calculator select,.quote-calculator input[type="checkbox"]').forEach(el=>el.addEventListener('change',calculate));
 
 const packageCards=[...document.querySelectorAll('.package-grid .package')];
-const packageIdFromCard=card=>{const tag=(card.querySelector('.tag')?.textContent||'').toLowerCase();if(tag.includes('oahu'))return 'mobile-oahu';if(tag.includes('maui'))return 'mobile-maui';if(tag.includes('big island'))return 'mobile-big-island';return null};
-function syncPackageCards(){const active=String(form.elements.package.value||'');packageCards.forEach(card=>card.classList.toggle('is-selected',packageIdFromCard(card)===active))}
-packageCards.forEach(card=>{const id=packageIdFromCard(card),link=card.querySelector('a[href*="#inquire"]');if(id&&link){link.addEventListener('click',()=>{form.elements.package.value=id;form.elements.package.dispatchEvent(new Event('change',{bubbles:true}));syncPackageCards()})}});
+const packageIdFromCard=card=>String(card.dataset.packageId||'');
+function syncPackageCards(){const active=String(form.elements.package.value||'');packageCards.forEach(card=>{const selected=packageIdFromCard(card)===active;card.classList.toggle('is-selected',selected);card.setAttribute('aria-selected',selected?'true':'false')})}
+function selectPackage(id){if(!id||!packagePrices.hasOwnProperty(id))return;form.elements.package.value=id;form.elements.package.dispatchEvent(new Event('change',{bubbles:true}));syncPackageCards()}
+packageCards.forEach(card=>{const id=packageIdFromCard(card),link=card.querySelector('a[href*="#inquire"]');if(!id)return;card.addEventListener('click',event=>{if(event.target.closest('a'))return;selectPackage(id)});card.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();selectPackage(id)}});if(link)link.addEventListener('click',()=>selectPackage(id))});
 form.elements.package.addEventListener('change',syncPackageCards);
 calculate();syncPackageCards();
 let submitting=false;
