@@ -371,3 +371,48 @@ html,body{max-width:100%;overflow-x:hidden}
   .inquiry form,.quote-calculator{padding:14px}
 }
 
+
+
+/* Mobile Bar editorial hub */
+.blog-index{padding:84px 7vw 110px;background:var(--cream,#f4efe5)}
+.blog-index-head{max-width:920px;margin:0 auto 54px;text-align:center}
+.blog-index-head h1{font:400 clamp(3rem,7vw,6rem)/.95 Georgia,serif;letter-spacing:-.045em;color:var(--forest,#082f25);margin:14px 0 20px}
+.blog-index-head p{max-width:760px;margin:0 auto;color:#58635d;line-height:1.7}
+.blog-grid{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+.blog-card{display:grid;grid-template-rows:260px 1fr;overflow:hidden;border:1px solid rgba(8,47,37,.12);background:#fff;text-decoration:none;color:inherit;transition:transform .25s ease,box-shadow .25s ease}
+.blog-card:hover{transform:translateY(-4px);box-shadow:0 24px 60px rgba(8,47,37,.10)}
+.blog-card img{width:100%;height:100%;object-fit:cover}
+.blog-card-copy{padding:28px}
+.blog-card-copy small{display:block;margin-bottom:10px;color:#92552c;font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.blog-card-copy h2{font:400 2rem/1.08 Georgia,serif;color:var(--forest,#082f25);margin:0 0 12px}
+.blog-card-copy p{margin:0;color:#5d6761;line-height:1.65}
+.article-hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,.8fr);gap:56px;align-items:center;padding:70px 7vw;background:#f4efe5}
+.article-hero-copy{max-width:800px}
+.article-hero .breadcrumb{margin-bottom:18px}
+.article-hero h1{font:400 clamp(3rem,6vw,5.8rem)/.95 Georgia,serif;letter-spacing:-.045em;color:#082f25;margin:12px 0 20px}
+.article-hero .article-deck{font-size:1.12rem;line-height:1.75;color:#53605a;max-width:760px}
+.article-meta{margin-top:20px;font-size:.76rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#92552c}
+.article-hero img{width:100%;height:min(70vh,620px);object-fit:cover;border-radius:4px}
+.article-layout{display:grid;grid-template-columns:minmax(0,760px) 250px;gap:70px;max-width:1120px;margin:0 auto;padding:80px 24px 110px}
+.article-body{font-size:1.06rem;line-height:1.82;color:#34413a}
+.article-body h2{font:400 clamp(2rem,4vw,3.1rem)/1.05 Georgia,serif;color:#082f25;letter-spacing:-.03em;margin:54px 0 18px}
+.article-body h3{font:400 1.65rem/1.12 Georgia,serif;color:#082f25;margin:34px 0 12px}
+.article-body p{margin:0 0 20px}
+.article-body ul,.article-body ol{margin:0 0 24px;padding-left:1.4rem}
+.article-body li{margin:8px 0}
+.article-body a{color:#7f4726;text-decoration-thickness:1px;text-underline-offset:3px}
+.article-callout{margin:34px 0;padding:24px 26px;border-left:4px solid #c5a36d;background:#f7f0e5}
+.article-callout strong{display:block;margin-bottom:8px;color:#082f25}
+.article-table{width:100%;border-collapse:collapse;margin:28px 0 34px;font-size:.95rem}
+.article-table th,.article-table td{padding:14px 12px;border-bottom:1px solid rgba(8,47,37,.13);vertical-align:top;text-align:left}
+.article-table th{color:#082f25;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em}
+.article-aside{position:sticky;top:110px;align-self:start;border:1px solid rgba(8,47,37,.12);background:#f7f0e5;padding:22px}
+.article-aside strong{display:block;color:#082f25;margin-bottom:12px}
+.article-aside a{display:block;padding:9px 0;border-bottom:1px solid rgba(8,47,37,.1);color:#5b4a3d;text-decoration:none;font-size:.9rem;line-height:1.4}
+.article-aside a:last-child{border-bottom:0}
+.article-cta{margin-top:54px;padding:34px;background:#082f25;color:white}
+.article-cta h2{color:white;margin-top:0}
+.article-cta p{color:rgba(255,255,255,.68)}
+.article-cta .btn{margin-top:8px}
+@media(max-width:900px){.blog-grid{grid-template-columns:1fr}.article-hero{grid-template-columns:1fr;padding-top:48px}.article-hero img{height:420px}.article-layout{grid-template-columns:1fr;gap:36px}.article-aside{position:static;order:-1}}
+@media(max-width:600px){.blog-index,.article-hero{padding-left:6vw;padding-right:6vw}.blog-card{grid-template-rows:220px 1fr}.article-hero h1{font-size:clamp(2.8rem,13vw,4rem)}.article-hero img{height:320px}.article-layout{padding:52px 6vw 72px}.article-body{font-size:1rem}.article-callout{padding:20px}.article-table{font-size:.85rem}}
