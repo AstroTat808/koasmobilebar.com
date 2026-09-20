@@ -8,3 +8,55 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+
+# Favicon image presets
+[[redirects]]
+  from = "/favicon-16x16.png"
+  to = "/.netlify/images?url=%2Fkoa-mobile-bar-icon.png&w=16&h=16&fit=contain&fm=png"
+  status = 200
+
+[[redirects]]
+  from = "/favicon-32x32.png"
+  to = "/.netlify/images?url=%2Fkoa-mobile-bar-icon.png&w=32&h=32&fit=contain&fm=png"
+  status = 200
+
+[[redirects]]
+  from = "/favicon-48x48.png"
+  to = "/.netlify/images?url=%2Fkoa-mobile-bar-icon.png&w=48&h=48&fit=contain&fm=png"
+  status = 200
+
+[[redirects]]
+  from = "/apple-touch-icon.png"
+  to = "/.netlify/images?url=%2Fkoa-mobile-bar-icon.png&w=180&h=180&fit=contain&fm=png"
+  status = 200
+
+[[redirects]]
+  from = "/favicon-180x180.png"
+  to = "/.netlify/images?url=%2Fkoa-mobile-bar-icon.png&w=180&h=180&fit=contain&fm=png"
+  status = 200
+
+[[redirects]]
+  from = "/favicon-192x192.png"
+  to = "/.netlify/images?url=%2Fkoa-mobile-bar-icon.png&w=192&h=192&fit=contain&fm=png"
+  status = 200
+
+[[redirects]]
+  from = "/favicon-512x512.png"
+  to = "/.netlify/images?url=%2Fkoa-mobile-bar-icon.png&w=512&h=512&fit=contain&fm=png"
+  status = 200
+
+[[headers]]
+  for = "/koa-mobile-bar-icon.png"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000, must-revalidate"
+
+[[headers]]
+  for = "/favicon-*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800, must-revalidate"
+
+[[headers]]
+  for = "/apple-touch-icon.png"
+  [headers.values]
+    Cache-Control = "public, max-age=604800, must-revalidate"
