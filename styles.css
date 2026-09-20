@@ -211,3 +211,9 @@ html,body{max-width:100%;overflow-x:hidden}
 .menu{position:relative;z-index:4;pointer-events:auto}
 .site-header{isolation:isolate}
 @media(max-width:900px){.site-header nav{z-index:3}.brand{position:relative;z-index:4}}
+
+
+/* WCAG contrast closure — 2026-09-20 */
+:root{--copper:#92552c}
+.eyebrow,.tag,.text-link{color:#92552c}
+.package.featured>a{color:#f0c59a}
