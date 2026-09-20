@@ -239,7 +239,7 @@ test('site-wide mobile visual audit at 320, 390 and 430', async ({ page }, testI
           return [];
         });
 
-        const touchSelectors = '.menu,.btn,.filter-btn,.package-request,input,select,textarea';
+        const touchSelectors = '.menu,.btn,.filter-btn,.package-request,input:not([type="checkbox"]):not([type="radio"]),select,textarea,.calculator-addons label';
         const smallTargets = [...document.querySelectorAll(touchSelectors)].filter(visible).flatMap(el => {
           const rect = el.getBoundingClientRect();
           if (rect.height < 42 || rect.width < 42) {
