@@ -47,6 +47,7 @@ for (const path of pages) {
 }
 
 test('homepage metadata, favicon package and quote calculator', async ({ page, request }) => {
+  await page.route('**/api/turnstile-config', route => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error:'test' }) }));
   await page.goto('/', { waitUntil: 'networkidle' });
 
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://koasmobilebar.com/');
@@ -70,6 +71,16 @@ test('homepage metadata, favicon package and quote calculator', async ({ page, r
 
   const active = page.locator('.package.is-selected');
   await expect(active).toHaveCount(1);
+});
+
+
+test('inquiry requires Turnstile before submit', async ({ page }) => {
+  await page.route('**/api/turnstile-config', route => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error:'test' }) }));
+  await page.goto('/', { waitUntil: 'networkidle' });
+  const form = page.locator('[data-mobile-quote-form]');
+  await expect(form.locator('[data-turnstile]')).toBeVisible();
+  await expect(form.locator('button[type="submit"]')).toBeDisabled();
+  await expect(form.locator('[data-crm-status]')).toContainText(/verification/i);
 });
 
 test('internal links return non-error responses', async ({ page, request }) => {
