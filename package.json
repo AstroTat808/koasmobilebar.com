@@ -9,7 +9,8 @@
     "qa:lighthouse": "lhci autorun --config=.lighthouserc.json",
     "qa:visual": "playwright test --grep \"@visual\"",
     "qa:visual:update": "playwright test --grep \"@visual\" --update-snapshots",
-    "qa:crm": "node tests/crm-handoff.mjs"
+    "qa:crm": "node tests/crm-handoff.mjs",
+    "qa:security": "node tests/security-config.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.2",
