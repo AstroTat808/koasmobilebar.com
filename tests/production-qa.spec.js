@@ -66,7 +66,7 @@ test('homepage metadata, favicon package and quote calculator', async ({ page, r
   await expect(form).toBeVisible();
   await expect(form.locator('[data-estimate-total]')).toHaveText('Select a package');
   await form.locator('select[name="package"]').selectOption('mobile-big-island');
-  await expect(form.locator('[data-estimate-total]')).toContainText('
+  await expect(form.locator('[data-estimate-total]')).toContainText('$');
 
   const active = page.locator('.package.is-selected');
   await expect(active).toHaveCount(1);
