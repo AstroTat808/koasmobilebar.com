@@ -24,7 +24,7 @@ jobs:
       - name: Detect approved baselines
         id: baselines
         run: |
-          if [ -f tests/production-qa.spec.js-snapshots/.baseline-version ] && [ "$(cat tests/production-qa.spec.js-snapshots/.baseline-version)" = "v2.1" ]; then
+          if [ -f tests/production-qa.spec.js-snapshots/.baseline-version ] && [ "$(cat tests/production-qa.spec.js-snapshots/.baseline-version)" = "v2.2" ]; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
@@ -56,7 +56,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          printf 'v2.1\n' > tests/production-qa.spec.js-snapshots/.baseline-version
+          printf 'v2.2\n' > tests/production-qa.spec.js-snapshots/.baseline-version
           git add tests/production-qa.spec.js-snapshots
           git commit -m "Expand approved visual regression baselines"
           git push origin HEAD:main
@@ -122,6 +122,15 @@ jobs:
           do
             curl --fail --silent --show-error --location "$url" >/dev/null
           done
+
+          curl --fail --silent --show-error https://koasmobilebar.com/api/turnstile-config | grep -q '"siteKey"'
+
+          status="$(curl --silent --output /tmp/turnstile-reject.json --write-out '%{http_code}' \
+            -X POST https://koasmobilebar.com/api/mobile-bar-inquiry \
+            -H 'Content-Type: application/json' \
+            --data '{"packageId":"mobile-oahu","customer":{"name":"QA","email":"qa@example.com","phone":"808-555-0100","eventDate":"2026-12-12"},"inquiry":{"eventLocation":"Hilo","eventType":"Birthday"}}')"
+          test "$status" = "400"
+          grep -qi 'verification' /tmp/turnstile-reject.json
 
   lighthouse:
     name: Lighthouse Gate
