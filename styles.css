@@ -570,3 +570,10 @@ html,body{max-width:100%;overflow-x:hidden}
   .featured-guide,.featured-guide-media img,.blog-card,.blog-card-media img,.article-aside a{transition:none!important}
   .featured-guide:hover,.blog-card:hover{transform:none}
 }
+
+
+/* Article narrow-screen overflow closure */
+.article-layout,.article-body,.article-aside{min-width:0}
+.article-body{overflow-wrap:anywhere}
+.article-body .article-table{max-width:100%}
+.article-aside a{overflow-wrap:anywhere}
