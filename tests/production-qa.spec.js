@@ -406,7 +406,7 @@ const fs = require('fs');
 const visualBaselineDir = 'tests/production-qa.spec.js-snapshots';
 
 test.describe('visual regression @visual', () => {
-  const baselineVersion = 'v2.9';
+  const baselineVersion = 'v3.0';
   const baselineMarker = visualBaselineDir + '/.baseline-version';
   const approved = fs.existsSync(visualBaselineDir) && fs.existsSync(baselineMarker) && fs.readFileSync(baselineMarker,'utf8').trim() === baselineVersion;
   test.skip(!approved && process.env.BOOTSTRAP_VISUAL !== '1', 'Approved visual baselines have not been bootstrapped for ' + baselineVersion + '.');
@@ -432,8 +432,22 @@ test.describe('visual regression @visual', () => {
   ];
 
   async function stabilize(page) {
-    await page.mouse.move(0, 0);
     await page.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}[data-turnstile]{display:none!important}' });
+    await page.evaluate(async () => {
+      await new Promise(resolve => {
+        let lastX=window.scrollX,lastY=window.scrollY,stableFrames=0,totalFrames=0;
+        const tick=()=>{
+          const x=window.scrollX,y=window.scrollY;
+          if(Math.abs(x-lastX)<.5 && Math.abs(y-lastY)<.5) stableFrames+=1;
+          else stableFrames=0;
+          lastX=x;lastY=y;totalFrames+=1;
+          if(stableFrames>=8 || totalFrames>=180) resolve();
+          else requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      });
+    });
+    await page.mouse.move(0, 0);
     await page.evaluate(async () => {
       if(document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur();
       const form=document.querySelector('[data-mobile-quote-form]');
