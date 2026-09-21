@@ -406,7 +406,7 @@ const fs = require('fs');
 const visualBaselineDir = 'tests/production-qa.spec.js-snapshots';
 
 test.describe('visual regression @visual', () => {
-  const baselineVersion = 'v3.0';
+  const baselineVersion = 'v3.1';
   const baselineMarker = visualBaselineDir + '/.baseline-version';
   const approved = fs.existsSync(visualBaselineDir) && fs.existsSync(baselineMarker) && fs.readFileSync(baselineMarker,'utf8').trim() === baselineVersion;
   test.skip(!approved && process.env.BOOTSTRAP_VISUAL !== '1', 'Approved visual baselines have not been bootstrapped for ' + baselineVersion + '.');
@@ -431,8 +431,9 @@ test.describe('visual regression @visual', () => {
     ['thank-you','/thank-you.html']
   ];
 
-  async function stabilize(page) {
-    await page.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}[data-turnstile]{display:none!important}' });
+  async function stabilize(page, { isolateComponent=false } = {}) {
+    const isolationCss=isolateComponent ? '.site-header{visibility:hidden!important}' : '';
+    await page.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}[data-turnstile]{display:none!important}' + isolationCss });
     await page.evaluate(async () => {
       await new Promise(resolve => {
         let lastX=window.scrollX,lastY=window.scrollY,stableFrames=0,totalFrames=0;
@@ -483,7 +484,7 @@ test.describe('visual regression @visual', () => {
     test('package selection ' + packageId + ' baseline', async ({ page }) => {
       await page.goto('/', { waitUntil: 'networkidle' });
       await page.locator('[data-package-id="' + packageId + '"]').click();
-      await stabilize(page);
+      await stabilize(page, { isolateComponent:true });
       await expect(page.locator('#packages')).toHaveScreenshot('package-' + packageId + '.png', {
         animations: 'disabled',
         maxDiffPixelRatio: 0.005
@@ -504,7 +505,7 @@ test.describe('visual regression @visual', () => {
     await form.locator('select[name="glassware-type"]').selectOption('premium');
     await form.locator('input[name="addon-champagne-toast"]').check();
     await form.locator('input[name="addon-champagne-tower"]').check();
-    await stabilize(page);
+    await stabilize(page, { isolateComponent:true });
     await expect(form.locator('.quote-calculator')).toHaveScreenshot('calculator-configured.png', {
       animations: 'disabled',
       maxDiffPixelRatio: 0.005
@@ -522,7 +523,7 @@ test.describe('visual regression @visual', () => {
     await form.locator('input[name="event-location"]').fill('Hilo, Hawaiʻi');
     await form.locator('select[name="event-type"]').selectOption({ label:'Birthday' });
     await form.locator('textarea[name="details"]').fill('Tropical birthday celebration with a simple beer and wine menu.');
-    await stabilize(page);
+    await stabilize(page, { isolateComponent:true });
     await expect(form).toHaveScreenshot('inquiry-form-partial.png', {
       animations: 'disabled',
       maxDiffPixelRatio: 0.005
@@ -532,7 +533,7 @@ test.describe('visual regression @visual', () => {
   test('open FAQ baseline', async ({ page }) => {
     await page.goto('/', { waitUntil: 'networkidle' });
     await page.locator('#faq details').first().locator('summary').click();
-    await stabilize(page);
+    await stabilize(page, { isolateComponent:true });
     await expect(page.locator('#faq')).toHaveScreenshot('faq-open.png', {
       animations: 'disabled',
       maxDiffPixelRatio: 0.005
@@ -543,7 +544,7 @@ test.describe('visual regression @visual', () => {
     await page.goto('/gallery/', { waitUntil: 'networkidle' });
     await page.locator('[data-lightbox]').first().click();
     await expect(page.locator('#lightbox')).toHaveClass(/open/);
-    await stabilize(page);
+    await stabilize(page, { isolateComponent:true });
     await expect(page.locator('#lightbox')).toHaveScreenshot('gallery-lightbox.png', {
       animations: 'disabled',
       maxDiffPixelRatio: 0.005
@@ -553,7 +554,7 @@ test.describe('visual regression @visual', () => {
   test('gallery category filter baseline', async ({ page }) => {
     await page.goto('/gallery/', { waitUntil: 'networkidle' });
     await page.locator('.filter-btn[data-filter="actual"]').click();
-    await stabilize(page);
+    await stabilize(page, { isolateComponent:true });
     await expect(page.locator('.gallery-page')).toHaveScreenshot('gallery-filter-mobile-bar.png', {
       animations: 'disabled',
       maxDiffPixelRatio: 0.005
