@@ -16,13 +16,11 @@ concurrency:
 jobs:
   bootstrap-visual-baselines:
     name: Bootstrap Visual Baselines
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.head_ref == 'fix/blog-card-readability')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
       - name: Detect approved baselines
         id: baselines
         run: |
@@ -61,11 +59,7 @@ jobs:
           printf 'v3.1\n' > tests/production-qa.spec.js-snapshots/.baseline-version
           git add tests/production-qa.spec.js-snapshots
           git commit -m "Refresh isolated component visual baselines"
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            git push origin HEAD:${{ github.head_ref }}
-          else
-            git push origin HEAD:main
-          fi
+          git push origin HEAD:main
 
   browser-qa:
     name: Browser QA
