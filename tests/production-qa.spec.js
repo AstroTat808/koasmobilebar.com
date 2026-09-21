@@ -84,6 +84,51 @@ test('blog cards keep readable copy separate from photography', async ({ page })
   }
 });
 
+test('Planning Guides hub exposes premium editorial metadata', async ({ page }) => {
+  await page.goto('/blog/', { waitUntil: 'networkidle' });
+  await expect(page.locator('.featured-guide')).toHaveCount(1);
+  await expect(page.locator('.featured-guide .blog-read-time')).toContainText('min read');
+  await expect(page.locator('.blog-grid .blog-card')).toHaveCount(4);
+  await expect(page.locator('.blog-grid .blog-read-time')).toHaveCount(4);
+  await expect(page.locator('.blog-grid .blog-topic')).toHaveCount(4);
+});
+
+const planningGuideArticles = [
+  '/blog/how-many-bartenders-wedding-big-island/',
+  '/blog/wedding-bar-shopping-list-hawaii/',
+  '/blog/mobile-bar-big-island-wedding-venue/',
+  '/blog/bartender-only-vs-mobile-bar-big-island/'
+];
+
+for (const path of planningGuideArticles) {
+  test(path + ' preserves readable article typography', async ({ page }, testInfo) => {
+    await page.goto(path, { waitUntil: 'networkidle' });
+    await expect(page.locator('.article-body')).toBeVisible();
+    await expect(page.locator('.article-meta')).toContainText('min read');
+
+    const metrics = await page.evaluate(() => {
+      const body = document.querySelector('.article-body');
+      const heading = document.querySelector('.article-hero h1');
+      const bodyStyle = getComputedStyle(body);
+      const headingStyle = getComputedStyle(heading);
+      return {
+        bodyFontSize: parseFloat(bodyStyle.fontSize),
+        bodyLineHeight: parseFloat(bodyStyle.lineHeight),
+        headingFontSize: parseFloat(headingStyle.fontSize),
+        scrollWidth: document.documentElement.scrollWidth,
+        viewportWidth: window.innerWidth
+      };
+    });
+
+    expect(metrics.bodyFontSize, 'article body remains legible').toBeGreaterThanOrEqual(16);
+    expect(metrics.bodyLineHeight / metrics.bodyFontSize, 'article line height remains comfortable').toBeGreaterThanOrEqual(1.65);
+    expect(metrics.scrollWidth, 'article does not overflow horizontally').toBeLessThanOrEqual(metrics.viewportWidth + 2);
+    if (testInfo.project.name.startsWith('mobile-')) {
+      expect(metrics.headingFontSize, 'mobile article headline stays compact').toBeLessThanOrEqual(54);
+    }
+  });
+}
+
 test('homepage metadata, favicon package and quote calculator', async ({ page, request }) => {
   await page.route('**/api/turnstile-config', route => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error:'test' }) }));
   await page.goto('/', { waitUntil: 'networkidle' });
