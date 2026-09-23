@@ -19,6 +19,11 @@ const pages = [
   '/weddings/',
   '/bartender-service/',
   '/gallery/',
+  '/blog/',
+  '/blog/how-many-bartenders-wedding-big-island/',
+  '/blog/wedding-bar-shopping-list-hawaii/',
+  '/blog/mobile-bar-big-island-wedding-venue/',
+  '/blog/bartender-only-vs-mobile-bar-big-island/',
   '/service-areas/',
   '/service-areas/hilo/',
   '/service-areas/kona/',
@@ -51,6 +56,76 @@ for (const path of pages) {
     }
 
     expect(errors.filter(e => !/favicon|Failed to load resource.*404/i.test(e)), 'console/page errors').toEqual([]);
+  });
+}
+
+test('blog cards keep readable copy separate from photography', async ({ page }) => {
+  await page.goto('/blog/', { waitUntil: 'networkidle' });
+  const cards = page.locator('.blog-card');
+  await expect(cards).toHaveCount(4);
+
+  for (const card of await cards.all()) {
+    const image = card.locator('img');
+    const copy = card.locator('.blog-card-copy');
+    await expect(image).toBeVisible();
+    await expect(copy).toBeVisible();
+
+    const [imageBox, copyBox] = await Promise.all([image.boundingBox(), copy.boundingBox()]);
+    expect(imageBox).not.toBeNull();
+    expect(copyBox).not.toBeNull();
+    expect(copyBox.y, 'copy begins at or below image bottom').toBeGreaterThanOrEqual(imageBox.y + imageBox.height - 1);
+
+    const styles = await copy.evaluate(el => {
+      const s = getComputedStyle(el);
+      return { backgroundColor: s.backgroundColor, color: s.color };
+    });
+    expect(styles.backgroundColor, 'copy panel has an opaque background').not.toBe('rgba(0, 0, 0, 0)');
+    expect(styles.color, 'copy panel text is light').toMatch(/rgb\((?:24[0-9]|25[0-5]),\s*(?:24[0-9]|25[0-5]),\s*(?:24[0-9]|25[0-5])\)/);
+  }
+});
+
+test('Planning Guides hub exposes premium editorial metadata', async ({ page }) => {
+  await page.goto('/blog/', { waitUntil: 'networkidle' });
+  await expect(page.locator('.featured-guide')).toHaveCount(1);
+  await expect(page.locator('.featured-guide .blog-read-time')).toContainText('min read');
+  await expect(page.locator('.blog-grid .blog-card')).toHaveCount(4);
+  await expect(page.locator('.blog-grid .blog-read-time')).toHaveCount(4);
+  await expect(page.locator('.blog-grid .blog-topic')).toHaveCount(4);
+});
+
+const planningGuideArticles = [
+  '/blog/how-many-bartenders-wedding-big-island/',
+  '/blog/wedding-bar-shopping-list-hawaii/',
+  '/blog/mobile-bar-big-island-wedding-venue/',
+  '/blog/bartender-only-vs-mobile-bar-big-island/'
+];
+
+for (const path of planningGuideArticles) {
+  test(path + ' preserves readable article typography', async ({ page }, testInfo) => {
+    await page.goto(path, { waitUntil: 'networkidle' });
+    await expect(page.locator('.article-body')).toBeVisible();
+    await expect(page.locator('.article-meta')).toContainText('min read');
+
+    const metrics = await page.evaluate(() => {
+      const body = document.querySelector('.article-body');
+      const heading = document.querySelector('.article-hero h1');
+      const bodyStyle = getComputedStyle(body);
+      const headingStyle = getComputedStyle(heading);
+      return {
+        bodyFontSize: parseFloat(bodyStyle.fontSize),
+        bodyLineHeight: parseFloat(bodyStyle.lineHeight),
+        headingFontSize: parseFloat(headingStyle.fontSize),
+        scrollWidth: document.documentElement.scrollWidth,
+        viewportWidth: window.innerWidth
+      };
+    });
+
+    expect(metrics.bodyFontSize, 'article body remains legible').toBeGreaterThanOrEqual(16);
+    expect(metrics.bodyLineHeight / metrics.bodyFontSize, 'article line height remains comfortable').toBeGreaterThanOrEqual(1.65);
+    expect(metrics.scrollWidth, 'article does not overflow horizontally').toBeLessThanOrEqual(metrics.viewportWidth + 2);
+    if (testInfo.project.name.startsWith('mobile-')) {
+      expect(metrics.headingFontSize, 'mobile article headline stays compact').toBeLessThanOrEqual(54);
+    }
   });
 }
 
@@ -331,7 +406,7 @@ const fs = require('fs');
 const visualBaselineDir = 'tests/production-qa.spec.js-snapshots';
 
 test.describe('visual regression @visual', () => {
-  const baselineVersion = 'v2.9';
+  const baselineVersion = 'v3.1';
   const baselineMarker = visualBaselineDir + '/.baseline-version';
   const approved = fs.existsSync(visualBaselineDir) && fs.existsSync(baselineMarker) && fs.readFileSync(baselineMarker,'utf8').trim() === baselineVersion;
   test.skip(!approved && process.env.BOOTSTRAP_VISUAL !== '1', 'Approved visual baselines have not been bootstrapped for ' + baselineVersion + '.');
@@ -356,21 +431,40 @@ test.describe('visual regression @visual', () => {
     ['thank-you','/thank-you.html']
   ];
 
-  async function stabilize(page) {
-    await page.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}[data-turnstile]{display:none!important}' });
-    await page.evaluate(() => {
+  async function stabilize(page, { isolateComponent=false } = {}) {
+    const isolationCss=isolateComponent ? '.site-header{visibility:hidden!important}' : '';
+    await page.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}[data-turnstile]{display:none!important}' + isolationCss });
+    await page.evaluate(async () => {
+      await new Promise(resolve => {
+        let lastX=window.scrollX,lastY=window.scrollY,stableFrames=0,totalFrames=0;
+        const tick=()=>{
+          const x=window.scrollX,y=window.scrollY;
+          if(Math.abs(x-lastX)<.5 && Math.abs(y-lastY)<.5) stableFrames+=1;
+          else stableFrames=0;
+          lastX=x;lastY=y;totalFrames+=1;
+          if(stableFrames>=8 || totalFrames>=180) resolve();
+          else requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      });
+    });
+    await page.mouse.move(0, 0);
+    await page.evaluate(async () => {
+      if(document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur();
       const form=document.querySelector('[data-mobile-quote-form]');
-      if(!form)return;
-      const submit=form.querySelector('button[type="submit"]');
-      if(submit)submit.disabled=false;
-      const status=form.querySelector('[data-crm-status]');
-      if(status){status.textContent='Submitting creates a Mobile Bar inquiry in the Koa\'s Events CRM and does not reserve your date.';delete status.dataset.state;}
-      form.querySelectorAll('.is-updated').forEach(el=>el.classList.remove('is-updated'));
-      form.querySelectorAll('.quote-calculator').forEach(el=>{el.scrollLeft=0;});
+      if(form){
+        const submit=form.querySelector('button[type="submit"]');
+        if(submit)submit.disabled=false;
+        const status=form.querySelector('[data-crm-status]');
+        if(status){status.textContent='Submitting creates a Mobile Bar inquiry in the Koa\'s Events CRM and does not reserve your date.';delete status.dataset.state;}
+        form.querySelectorAll('.is-updated').forEach(el=>el.classList.remove('is-updated'));
+        form.querySelectorAll('.quote-calculator').forEach(el=>{el.scrollLeft=0;});
+      }
       if(document.scrollingElement)document.scrollingElement.scrollLeft=0;
       document.documentElement.scrollLeft=0;
       document.body.scrollLeft=0;
-      window.scrollTo({left:0,top:window.scrollY,behavior:'instant'});
+      if(document.fonts && document.fonts.ready) await document.fonts.ready;
+      await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
     });
   }
 
@@ -390,7 +484,7 @@ test.describe('visual regression @visual', () => {
     test('package selection ' + packageId + ' baseline', async ({ page }) => {
       await page.goto('/', { waitUntil: 'networkidle' });
       await page.locator('[data-package-id="' + packageId + '"]').click();
-      await stabilize(page);
+      await stabilize(page, { isolateComponent:true });
       await expect(page.locator('#packages')).toHaveScreenshot('package-' + packageId + '.png', {
         animations: 'disabled',
         maxDiffPixelRatio: 0.005
@@ -411,7 +505,7 @@ test.describe('visual regression @visual', () => {
     await form.locator('select[name="glassware-type"]').selectOption('premium');
     await form.locator('input[name="addon-champagne-toast"]').check();
     await form.locator('input[name="addon-champagne-tower"]').check();
-    await stabilize(page);
+    await stabilize(page, { isolateComponent:true });
     await expect(form.locator('.quote-calculator')).toHaveScreenshot('calculator-configured.png', {
       animations: 'disabled',
       maxDiffPixelRatio: 0.005
@@ -429,7 +523,7 @@ test.describe('visual regression @visual', () => {
     await form.locator('input[name="event-location"]').fill('Hilo, Hawaiʻi');
     await form.locator('select[name="event-type"]').selectOption({ label:'Birthday' });
     await form.locator('textarea[name="details"]').fill('Tropical birthday celebration with a simple beer and wine menu.');
-    await stabilize(page);
+    await stabilize(page, { isolateComponent:true });
     await expect(form).toHaveScreenshot('inquiry-form-partial.png', {
       animations: 'disabled',
       maxDiffPixelRatio: 0.005
@@ -439,7 +533,7 @@ test.describe('visual regression @visual', () => {
   test('open FAQ baseline', async ({ page }) => {
     await page.goto('/', { waitUntil: 'networkidle' });
     await page.locator('#faq details').first().locator('summary').click();
-    await stabilize(page);
+    await stabilize(page, { isolateComponent:true });
     await expect(page.locator('#faq')).toHaveScreenshot('faq-open.png', {
       animations: 'disabled',
       maxDiffPixelRatio: 0.005
@@ -450,7 +544,7 @@ test.describe('visual regression @visual', () => {
     await page.goto('/gallery/', { waitUntil: 'networkidle' });
     await page.locator('[data-lightbox]').first().click();
     await expect(page.locator('#lightbox')).toHaveClass(/open/);
-    await stabilize(page);
+    await stabilize(page, { isolateComponent:true });
     await expect(page.locator('#lightbox')).toHaveScreenshot('gallery-lightbox.png', {
       animations: 'disabled',
       maxDiffPixelRatio: 0.005
@@ -460,7 +554,7 @@ test.describe('visual regression @visual', () => {
   test('gallery category filter baseline', async ({ page }) => {
     await page.goto('/gallery/', { waitUntil: 'networkidle' });
     await page.locator('.filter-btn[data-filter="actual"]').click();
-    await stabilize(page);
+    await stabilize(page, { isolateComponent:true });
     await expect(page.locator('.gallery-page')).toHaveScreenshot('gallery-filter-mobile-bar.png', {
       animations: 'disabled',
       maxDiffPixelRatio: 0.005
