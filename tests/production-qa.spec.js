@@ -258,6 +258,27 @@ test('package cards keep a shared baseline, equal height and internal rhythm', a
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2), 'package section does not create horizontal overflow').toBeTruthy();
 });
 
+test('service event and service-area landing pages share the luxury conversion system', async ({ page }) => {
+  const paths=['/services/','/bartender-service/','/birthdays/','/corporate-events/','/graduations/','/private-parties/','/weddings/','/wedding-bartenders/','/service-areas/','/service-areas/hilo/','/service-areas/kona/','/service-areas/puna/','/service-areas/waimea/','/service-areas/hilo/wedding-bartenders/','/service-areas/kona/wedding-bartenders/'];
+  for(const path of paths){
+    await page.goto(path,{waitUntil:'domcontentloaded'});
+    await expect(page.locator('body')).toHaveClass(/luxury-landing/);
+    await expect(page.locator('[data-landing-proof]')).toBeVisible();
+    await expect(page.locator('[data-landing-proof]')).toContainText('From $1,500');
+  }
+});
+
+test('comparison guest count updates all package subtotals and calculator guest count', async ({ page }) => {
+  await page.goto('/',{waitUntil:'networkidle'});
+  const compare=page.locator('[data-compare-guest-count]');
+  await expect(compare).toBeVisible();
+  await compare.fill('125');
+  await expect(page.locator('[data-compare-total="mobile-oahu"]')).toHaveText('$1,750');
+  await expect(page.locator('[data-compare-total="mobile-maui"]')).toHaveText('$2,300');
+  await expect(page.locator('[data-compare-total="mobile-big-island"]')).toHaveText('$2,875');
+  await expect(page.locator('[data-mobile-quote-form] input[name="guest-count"]')).toHaveValue('125');
+});
+
 test('homepage luxury pass and package comparison are structurally complete', async ({ page }) => {
   await page.goto('/', { waitUntil: 'networkidle' });
 
@@ -548,7 +569,7 @@ const fs = require('fs');
 const visualBaselineDir = 'tests/production-qa.spec.js-snapshots';
 
 test.describe('visual regression @visual', () => {
-  const baselineVersion = 'v3.4';
+  const baselineVersion = 'v3.5';
   const baselineMarker = visualBaselineDir + '/.baseline-version';
   const approved = fs.existsSync(visualBaselineDir) && fs.existsSync(baselineMarker) && fs.readFileSync(baselineMarker,'utf8').trim() === baselineVersion;
   test.skip(!approved && process.env.BOOTSTRAP_VISUAL !== '1', 'Approved visual baselines have not been bootstrapped for ' + baselineVersion + '.');
