@@ -647,6 +647,13 @@ html,body{max-width:100%;overflow-x:hidden}
     margin-top:0;
     margin-bottom:0
   }
+  .package-grid>.package.is-selected .tag:after{
+    position:absolute;
+    z-index:2;
+    top:21px;
+    right:64px;
+    margin-left:0
+  }
   .package-grid>.package .price{
     min-height:66px;
     margin:16px 0 26px
