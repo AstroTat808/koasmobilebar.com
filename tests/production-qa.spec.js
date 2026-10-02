@@ -180,31 +180,69 @@ test('internal links return non-error responses', async ({ page, request }) => {
   }
 });
 
-test('package cards keep a shared baseline and responsive geometry', async ({ page }) => {
+test('package cards keep a shared baseline, equal height and internal rhythm', async ({ page }) => {
   await page.goto('/', { waitUntil: 'networkidle' });
 
   const cards = page.locator('.package-grid > .package');
   await expect(cards).toHaveCount(3);
+  const viewportWidth = await page.evaluate(() => window.innerWidth);
 
-  const metrics = await cards.evaluateAll(nodes => nodes.map(node => {
+  const readGeometry = () => cards.evaluateAll(nodes => nodes.map(node => {
     const rect = node.getBoundingClientRect();
     const style = getComputedStyle(node);
+    const tag = node.querySelector('.tag')?.getBoundingClientRect();
+    const price = node.querySelector('.price')?.getBoundingClientRect();
+    const title = node.querySelector('h3')?.getBoundingClientRect();
+    const list = node.querySelector('ul')?.getBoundingClientRect();
+    const cta = node.querySelector('.package-request')?.getBoundingClientRect();
     return {
       top: rect.top,
       bottom: rect.bottom,
+      height: rect.height,
       left: rect.left,
       width: rect.width,
       transform: style.transform,
       backgroundImage: style.backgroundImage,
-      borderTopColor: style.borderTopColor
+      borderTopColor: style.borderTopColor,
+      tagTop: tag?.top,
+      priceTop: price?.top,
+      titleTop: title?.top,
+      listTop: list?.top,
+      ctaBottom: cta?.bottom
     };
   }));
-  const viewportWidth = await page.evaluate(() => window.innerWidth);
+
+  const expectDesktopAlignment = metrics => {
+    const delta = key => Math.max(...metrics.map(x => x[key])) - Math.min(...metrics.map(x => x[key]));
+    expect(delta('top'), 'desktop cards share the same top baseline').toBeLessThanOrEqual(1);
+    expect(delta('height'), 'desktop cards stay exactly equal in height').toBeLessThanOrEqual(1);
+    expect(delta('bottom'), 'desktop cards share the same bottom baseline').toBeLessThanOrEqual(1);
+    expect(delta('tagTop'), 'package labels align').toBeLessThanOrEqual(1);
+    expect(delta('priceTop'), 'package prices align').toBeLessThanOrEqual(1);
+    expect(delta('titleTop'), 'package titles align').toBeLessThanOrEqual(1);
+    expect(delta('listTop'), 'package feature lists align').toBeLessThanOrEqual(1);
+    expect(delta('ctaBottom'), 'package request buttons align').toBeLessThanOrEqual(1);
+    for (const metric of metrics) expect(metric.transform, 'desktop package card has no persistent transform').toBe('none');
+  };
+
+  let metrics = await readGeometry();
 
   if (viewportWidth > 900) {
-    expect(Math.max(...metrics.map(x => x.top)) - Math.min(...metrics.map(x => x.top)), 'desktop cards share the same top baseline').toBeLessThanOrEqual(1);
-    expect(Math.max(...metrics.map(x => x.bottom)) - Math.min(...metrics.map(x => x.bottom)), 'desktop cards share the same bottom baseline').toBeLessThanOrEqual(1);
-    expect(metrics[0].transform, 'featured card is not permanently offset').toBe('none');
+    expectDesktopAlignment(metrics);
+
+    const select = page.locator('[data-mobile-quote-form] select[name="package"]');
+    for (const packageId of ['mobile-big-island','mobile-maui','mobile-oahu']) {
+      await select.selectOption(packageId);
+      metrics = await readGeometry();
+      expectDesktopAlignment(metrics);
+    }
+
+    for (let i = 0; i < 3; i += 1) {
+      await cards.nth(i).hover();
+      metrics = await readGeometry();
+      expectDesktopAlignment(metrics);
+    }
+    await page.mouse.move(0, 0);
   } else {
     expect(Math.max(...metrics.map(x => x.left)) - Math.min(...metrics.map(x => x.left)), 'stacked cards stay left aligned').toBeLessThanOrEqual(1);
     expect(Math.max(...metrics.map(x => x.width)) - Math.min(...metrics.map(x => x.width)), 'stacked cards keep equal widths').toBeLessThanOrEqual(1);
