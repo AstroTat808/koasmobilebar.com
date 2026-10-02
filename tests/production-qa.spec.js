@@ -180,6 +180,42 @@ test('internal links return non-error responses', async ({ page, request }) => {
   }
 });
 
+test('package cards keep a shared baseline and responsive geometry', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'networkidle' });
+
+  const cards = page.locator('.package-grid > .package');
+  await expect(cards).toHaveCount(3);
+
+  const metrics = await cards.evaluateAll(nodes => nodes.map(node => {
+    const rect = node.getBoundingClientRect();
+    const style = getComputedStyle(node);
+    return {
+      top: rect.top,
+      bottom: rect.bottom,
+      left: rect.left,
+      width: rect.width,
+      transform: style.transform,
+      backgroundImage: style.backgroundImage,
+      borderTopColor: style.borderTopColor
+    };
+  }));
+  const viewportWidth = await page.evaluate(() => window.innerWidth);
+
+  if (viewportWidth > 900) {
+    expect(Math.max(...metrics.map(x => x.top)) - Math.min(...metrics.map(x => x.top)), 'desktop cards share the same top baseline').toBeLessThanOrEqual(1);
+    expect(Math.max(...metrics.map(x => x.bottom)) - Math.min(...metrics.map(x => x.bottom)), 'desktop cards share the same bottom baseline').toBeLessThanOrEqual(1);
+    expect(metrics[0].transform, 'featured card is not permanently offset').toBe('none');
+  } else {
+    expect(Math.max(...metrics.map(x => x.left)) - Math.min(...metrics.map(x => x.left)), 'stacked cards stay left aligned').toBeLessThanOrEqual(1);
+    expect(Math.max(...metrics.map(x => x.width)) - Math.min(...metrics.map(x => x.width)), 'stacked cards keep equal widths').toBeLessThanOrEqual(1);
+    for (const metric of metrics) expect(metric.transform, 'stacked package card has no persistent transform').toBe('none');
+  }
+
+  expect(metrics[0].backgroundImage, 'featured package keeps a premium visual treatment').not.toBe('none');
+  expect(metrics[0].borderTopColor, 'featured package keeps a distinct premium border').not.toBe(metrics[1].borderTopColor);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2), 'package section does not create horizontal overflow').toBeTruthy();
+});
+
 test('package cards are directly selectable and sync with calculator', async ({ page }) => {
   await page.goto('/', { waitUntil: 'networkidle' });
   const form=page.locator('[data-mobile-quote-form]');
@@ -406,7 +442,7 @@ const fs = require('fs');
 const visualBaselineDir = 'tests/production-qa.spec.js-snapshots';
 
 test.describe('visual regression @visual', () => {
-  const baselineVersion = 'v3.1';
+  const baselineVersion = 'v3.2';
   const baselineMarker = visualBaselineDir + '/.baseline-version';
   const approved = fs.existsSync(visualBaselineDir) && fs.existsSync(baselineMarker) && fs.readFileSync(baselineMarker,'utf8').trim() === baselineVersion;
   test.skip(!approved && process.env.BOOTSTRAP_VISUAL !== '1', 'Approved visual baselines have not been bootstrapped for ' + baselineVersion + '.');
