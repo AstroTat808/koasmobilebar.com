@@ -85,6 +85,7 @@ jobs:
         run: npm run qa
       - name: Upload visual QA artifacts
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: visual-qa-${{ github.sha }}
