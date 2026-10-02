@@ -208,6 +208,8 @@ test('package cards keep a shared baseline, equal height and internal rhythm', a
       priceTop: price?.top,
       titleTop: title?.top,
       listTop: list?.top,
+      upgradeTop: node.querySelector('.package-upgrade')?.getBoundingClientRect().top,
+      upgradeBottom: node.querySelector('.package-upgrade')?.getBoundingClientRect().bottom,
       ctaBottom: cta?.bottom
     };
   }));
@@ -220,6 +222,8 @@ test('package cards keep a shared baseline, equal height and internal rhythm', a
     expect(delta('tagTop'), 'package labels align').toBeLessThanOrEqual(1);
     expect(delta('priceTop'), 'package prices align').toBeLessThanOrEqual(1);
     expect(delta('titleTop'), 'package titles align').toBeLessThanOrEqual(1);
+    expect(delta('upgradeTop'), 'package comparison callouts align').toBeLessThanOrEqual(1);
+    expect(delta('upgradeBottom'), 'package comparison callouts keep equal height').toBeLessThanOrEqual(1);
     expect(delta('listTop'), 'package feature lists align').toBeLessThanOrEqual(1);
     expect(delta('ctaBottom'), 'package request buttons align').toBeLessThanOrEqual(1);
     for (const metric of metrics) expect(metric.transform, 'desktop package card has no persistent transform').toBe('none');
@@ -252,6 +256,27 @@ test('package cards keep a shared baseline, equal height and internal rhythm', a
   expect(metrics[0].backgroundImage, 'featured package keeps a premium visual treatment').not.toBe('none');
   expect(metrics[0].borderTopColor, 'featured package keeps a distinct premium border').not.toBe(metrics[1].borderTopColor);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2), 'package section does not create horizontal overflow').toBeTruthy();
+});
+
+test('package comparison communicates exactly what each tier adds', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'networkidle' });
+
+  await expect(page.locator('[data-package-id="mobile-oahu"] [data-package-upgrade="foundation"]')).toContainText('Foundation menu');
+  await expect(page.locator('[data-package-id="mobile-oahu"] [data-package-upgrade="foundation"]')).toContainText('Beer · champagne · wine');
+
+  await expect(page.locator('[data-package-id="mobile-maui"] [data-package-upgrade="signature-drinks"]')).toContainText('Adds over Oahu');
+  await expect(page.locator('[data-package-id="mobile-maui"] [data-package-upgrade="signature-drinks"]')).toContainText('2 signature drinks');
+
+  await expect(page.locator('[data-package-id="mobile-big-island"] [data-package-upgrade="mixed-cocktails"]')).toContainText('Adds over Maui');
+  await expect(page.locator('[data-package-id="mobile-big-island"] [data-package-upgrade="mixed-cocktails"]')).toContainText('Mixed cocktail service');
+
+  const foundation = page.locator('.package-foundation');
+  await expect(foundation).toContainText('Included with every package');
+  await expect(foundation).toContainText('100');
+  await expect(foundation).toContainText('4 hrs');
+  await expect(foundation).toContainText('20 mi');
+
+  await expect(page.locator('.package-grid .is-upgrade')).toHaveCount(2);
 });
 
 test('package cards are directly selectable and sync with calculator', async ({ page }) => {
@@ -480,7 +505,7 @@ const fs = require('fs');
 const visualBaselineDir = 'tests/production-qa.spec.js-snapshots';
 
 test.describe('visual regression @visual', () => {
-  const baselineVersion = 'v3.2';
+  const baselineVersion = 'v3.3';
   const baselineMarker = visualBaselineDir + '/.baseline-version';
   const approved = fs.existsSync(visualBaselineDir) && fs.existsSync(baselineMarker) && fs.readFileSync(baselineMarker,'utf8').trim() === baselineVersion;
   test.skip(!approved && process.env.BOOTSTRAP_VISUAL !== '1', 'Approved visual baselines have not been bootstrapped for ' + baselineVersion + '.');
