@@ -127,9 +127,7 @@ export default async (req: Request, context: any) => {
     if (!response.ok) console.error('Mobile Bar analytics ingest rejected', response.status);
   };
 
-  context.waitUntil(
-    forward().catch((error: unknown) => console.error('Mobile Bar analytics forward failed', error)),
-  );
+  await forward().catch((error: unknown) => console.error('Mobile Bar analytics forward failed', error));
 
   return Response.json(
     { ok: true },
