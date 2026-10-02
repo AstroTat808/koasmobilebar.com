@@ -882,7 +882,7 @@ html,body{max-width:100%;overflow-x:hidden}
 }
 @media(min-width:901px){
   .package-grid>.package>p:not(.tag){
-    min-height:7.15rem;
+    min-height:8.25rem;
     margin-bottom:18px
   }
   .package-grid>.package .package-upgrade{
