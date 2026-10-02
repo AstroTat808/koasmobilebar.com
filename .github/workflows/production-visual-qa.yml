@@ -24,7 +24,7 @@ jobs:
       - name: Detect approved baselines
         id: baselines
         run: |
-          if [ -f tests/production-qa.spec.js-snapshots/.baseline-version ] && [ "$(cat tests/production-qa.spec.js-snapshots/.baseline-version)" = "v3.3" ]; then
+          if [ -f tests/production-qa.spec.js-snapshots/.baseline-version ] && [ "$(cat tests/production-qa.spec.js-snapshots/.baseline-version)" = "v3.4" ]; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
@@ -56,7 +56,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          printf 'v3.3\n' > tests/production-qa.spec.js-snapshots/.baseline-version
+          printf 'v3.4\n' > tests/production-qa.spec.js-snapshots/.baseline-version
           git add tests/production-qa.spec.js-snapshots
           git commit -m "Refresh isolated component visual baselines"
           git push origin HEAD:main
@@ -92,16 +92,17 @@ jobs:
           for i in {1..45}; do
             curl -fsS https://koasmobilebar.com/styles.css > /tmp/live-styles.css || true
             curl -fsS https://koasmobilebar.com/ > /tmp/live-home.html || true
-            if grep -Fq 'Package comparison luxury pass — 2026-10-01' /tmp/live-styles.css \
-              && grep -Fq 'data-package-upgrade="mixed-cocktails"' /tmp/live-home.html \
-              && grep -Fq 'data-package-upgrade="signature-drinks"' /tmp/live-home.html; then
+            if grep -Fq 'Homepage luxury conversion pass — 2026-10-01' /tmp/live-styles.css \
+              && grep -Fq 'data-package-comparison' /tmp/live-home.html \
+              && grep -Fq 'data-package-handoff' /tmp/live-home.html \
+              && grep -Fq 'class="hero-proof"' /tmp/live-home.html; then
               ready=1
               break
             fi
             sleep 4
           done
           test "$ready" = "1"
-          npx playwright test tests/production-qa.spec.js --grep "package cards keep a shared baseline|package comparison communicates"
+          npx playwright test tests/production-qa.spec.js --grep "homepage luxury pass|pricing conversion handoff|package cards keep a shared baseline|package comparison communicates"
       - name: Upload visual QA artifacts
         if: always()
         continue-on-error: true
