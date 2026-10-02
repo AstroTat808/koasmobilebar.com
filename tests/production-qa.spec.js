@@ -279,6 +279,30 @@ test('comparison guest count updates all package subtotals and calculator guest 
   await expect(page.locator('[data-mobile-quote-form] input[name="guest-count"]')).toHaveValue('125');
 });
 
+test('conversion events distinguish package-card and comparison interactions', async ({ page }) => {
+  const events=[];
+  await page.route('**/api/mobile-bar-analytics',async route=>{
+    if(route.request().method()==='POST'){
+      const body=route.request().postData();
+      if(body) events.push(JSON.parse(body));
+    }
+    await route.fulfill({status:202,contentType:'application/json',body:'{"ok":true}'});
+  });
+  await page.goto('/',{waitUntil:'domcontentloaded'});
+  await page.locator('[data-package-id="mobile-maui"] .package-request').click();
+  await page.locator('[data-select-package="mobile-oahu"]').click();
+  await page.locator('[data-compare-guest-count]').fill('125');
+  await page.waitForTimeout(650);
+  const location=page.locator('[data-mobile-quote-form] input[name="event-location"]');
+  await location.focus();
+  await page.waitForTimeout(100);
+  expect(events.some(event=>event.type==='package_card_click'&&event.packageId==='mobile-maui')).toBeTruthy();
+  expect(events.some(event=>event.type==='comparison_package_click'&&event.packageId==='mobile-oahu')).toBeTruthy();
+  expect(events.some(event=>event.type==='comparison_guest_count_change'&&event.guestCount===125)).toBeTruthy();
+  expect(events.some(event=>event.type==='event_details_started')).toBeTruthy();
+  expect(events.every(event=>!('email' in event)&&!('phone' in event)&&!('name' in event))).toBeTruthy();
+});
+
 test('homepage luxury pass and package comparison are structurally complete', async ({ page }) => {
   await page.goto('/', { waitUntil: 'networkidle' });
 
