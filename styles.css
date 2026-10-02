@@ -1304,7 +1304,7 @@ body.home .package-table .compare-added{
 }
 body.home .package-compare-note{
   margin:14px 0 0;
-  color:#707a74;
+  color:#59645e;
   font-size:.72rem
 }
 
@@ -1417,7 +1417,8 @@ body.home .split-copy:before{
 body.home .split-copy h2{text-wrap:balance}
 body.home .split-copy .text-link{
   padding-bottom:4px;
-  border-bottom:1px solid rgba(169,101,54,.35)
+  border-bottom:1px solid rgba(127,71,39,.38);
+  color:#7f4727
 }
 
 body.home .gallery{
