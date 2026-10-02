@@ -696,3 +696,268 @@ html,body{max-width:100%;overflow-x:hidden}
     padding:5px 7px
   }
 }
+
+/* Package comparison luxury pass — 2026-10-01 */
+.packages{
+  padding-top:clamp(88px,8vw,132px);
+  padding-bottom:clamp(82px,7vw,118px)
+}
+.package-heading{
+  max-width:1040px;
+  margin-bottom:44px;
+  padding-bottom:34px;
+  border-bottom:1px solid rgba(8,47,37,.14)
+}
+.package-heading h2{
+  max-width:900px;
+  font-size:clamp(2.6rem,4.7vw,5.2rem);
+  line-height:.98;
+  letter-spacing:-.045em
+}
+.package-heading>p:last-of-type{
+  max-width:790px;
+  margin-top:24px;
+  font-size:1.04rem;
+  line-height:1.75;
+  color:#4f5d55
+}
+.package-heading-rule{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  max-width:620px;
+  margin-top:26px;
+  color:#8a5b3b;
+  font-size:.64rem;
+  font-weight:800;
+  letter-spacing:.14em;
+  text-transform:uppercase
+}
+.package-heading-rule i{
+  height:1px;
+  flex:1;
+  background:linear-gradient(90deg,rgba(169,101,54,.18),rgba(169,101,54,.58),rgba(169,101,54,.18))
+}
+.package-grid{
+  gap:22px
+}
+.package-grid>.package{
+  padding:40px;
+  border-color:rgba(8,47,37,.13);
+  box-shadow:0 18px 50px rgba(30,45,38,.05),inset 0 1px 0 rgba(255,255,255,.7)
+}
+.package-grid>.package:not(.featured){
+  background:linear-gradient(180deg,#fff 0%,#fffdfa 100%)
+}
+.package-grid>.package .price{
+  margin-bottom:25px
+}
+.package-grid>.package h3{
+  font-size:clamp(1.72rem,2vw,1.95rem)
+}
+.package-upgrade{
+  display:grid;
+  align-content:center;
+  gap:4px;
+  min-height:78px;
+  margin:4px 0 24px;
+  padding:15px 16px;
+  border:1px solid rgba(169,101,54,.16);
+  border-left:3px solid rgba(169,101,54,.72);
+  background:rgba(244,239,229,.62)
+}
+.package-upgrade span{
+  color:#8b5a39;
+  font-size:.61rem;
+  font-weight:800;
+  letter-spacing:.14em;
+  text-transform:uppercase
+}
+.package-upgrade strong{
+  font:400 1.08rem/1.35 Georgia,serif;
+  color:#21342c
+}
+.package-upgrade-foundation{
+  border-left-color:rgba(8,47,37,.35);
+  background:rgba(8,47,37,.035)
+}
+.package-upgrade-foundation span{
+  color:#647068
+}
+.package-upgrade-premium{
+  border-color:rgba(240,197,154,.18);
+  border-left-color:#e0ad81;
+  background:rgba(255,255,255,.055)
+}
+.package-upgrade-premium span{color:#f0c59a}
+.package-upgrade-premium strong{color:#fff}
+.package-grid>.package ul{
+  margin-top:0
+}
+.package-grid>.package li.is-upgrade{
+  position:relative;
+  list-style:none;
+  margin-left:-18px;
+  padding:8px 10px 8px 30px;
+  border-left:2px solid rgba(169,101,54,.7);
+  background:linear-gradient(90deg,rgba(169,101,54,.09),transparent 78%);
+  font-weight:750
+}
+.package-grid>.package li.is-upgrade:before{
+  content:"+";
+  position:absolute;
+  left:10px;
+  top:7px;
+  color:#9b6038;
+  font-weight:900
+}
+.package-grid>.package.featured li.is-upgrade{
+  border-left-color:#e0ad81;
+  background:linear-gradient(90deg,rgba(224,173,129,.12),transparent 78%)
+}
+.package-grid>.package.featured li.is-upgrade:before{
+  color:#f0c59a
+}
+.package-grid>.package .package-request{
+  padding-top:8px
+}
+.package-foundation{
+  display:grid;
+  grid-template-columns:minmax(240px,.85fr) minmax(0,1.55fr);
+  gap:26px 38px;
+  margin-top:30px;
+  padding:28px 30px 24px;
+  border:1px solid rgba(8,47,37,.13);
+  background:linear-gradient(135deg,rgba(255,255,255,.72),rgba(248,243,233,.86));
+  box-shadow:0 14px 38px rgba(30,45,38,.045)
+}
+.package-foundation-copy p{
+  margin:0 0 6px;
+  color:#92552c;
+  font-size:.62rem;
+  font-weight:800;
+  letter-spacing:.16em;
+  text-transform:uppercase
+}
+.package-foundation-copy strong{
+  display:block;
+  max-width:300px;
+  font:400 1.28rem/1.3 Georgia,serif;
+  color:#1d3028
+}
+.package-foundation-facts{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  border-left:1px solid rgba(8,47,37,.12)
+}
+.package-foundation-facts span{
+  min-width:0;
+  padding:3px 18px;
+  border-right:1px solid rgba(8,47,37,.12)
+}
+.package-foundation-facts b{
+  display:block;
+  font:400 1.28rem/1.25 Georgia,serif;
+  color:#15362c
+}
+.package-foundation-facts small{
+  display:block;
+  margin-top:5px;
+  color:#68736c;
+  font-size:.62rem;
+  font-weight:750;
+  letter-spacing:.06em;
+  line-height:1.35;
+  text-transform:uppercase
+}
+.package-foundation-foot{
+  grid-column:1/-1;
+  margin:0;
+  padding-top:18px;
+  border-top:1px solid rgba(8,47,37,.1);
+  color:#647068;
+  font-size:.75rem;
+  font-weight:650;
+  letter-spacing:.02em
+}
+@media(min-width:901px){
+  .package-grid>.package>p:not(.tag){
+    min-height:7.15rem;
+    margin-bottom:18px
+  }
+  .package-grid>.package .package-upgrade{
+    min-height:82px
+  }
+  .package-grid>.package ul{
+    min-height:9.75rem;
+    margin-bottom:28px
+  }
+}
+@media(max-width:900px){
+  .package-heading{
+    margin-bottom:34px;
+    padding-bottom:28px
+  }
+  .package-grid{gap:18px}
+  .package-grid>.package{padding:34px}
+  .package-upgrade{margin-top:2px}
+  .package-foundation{
+    grid-template-columns:1fr;
+    gap:24px;
+    padding:26px
+  }
+  .package-foundation-copy strong{max-width:520px}
+  .package-foundation-facts{border-left:0}
+}
+@media(max-width:600px){
+  .packages{
+    padding-top:72px;
+    padding-bottom:72px
+  }
+  .package-heading{
+    margin-bottom:28px;
+    padding-bottom:24px
+  }
+  .package-heading h2{
+    font-size:clamp(2.35rem,11.5vw,3.2rem)
+  }
+  .package-heading>p:last-of-type{
+    margin-top:18px;
+    font-size:.96rem;
+    line-height:1.68
+  }
+  .package-heading-rule{
+    gap:8px;
+    margin-top:20px;
+    font-size:.55rem
+  }
+  .package-grid{gap:15px}
+  .package-grid>.package{padding:26px}
+  .package-upgrade{
+    min-height:0;
+    margin:2px 0 20px;
+    padding:13px 14px
+  }
+  .package-grid>.package li.is-upgrade{
+    margin-left:-16px
+  }
+  .package-foundation{
+    margin-top:22px;
+    padding:23px 20px 20px
+  }
+  .package-foundation-facts{
+    grid-template-columns:1fr 1fr
+  }
+  .package-foundation-facts span{
+    padding:12px 10px;
+    border-right:0;
+    border-top:1px solid rgba(8,47,37,.1)
+  }
+  .package-foundation-facts span:nth-child(odd){
+    border-right:1px solid rgba(8,47,37,.1)
+  }
+  .package-foundation-foot{
+    padding-top:16px;
+    line-height:1.55
+  }
+}
