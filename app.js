@@ -3,6 +3,12 @@
 const packagePrices={'mobile-oahu':1500,'mobile-maui':2000,'mobile-big-island':2500,'mobile-custom':0};
 const packageNames={'mobile-oahu':'Oahu Package','mobile-maui':'Maui Package','mobile-big-island':'Big Island Package','mobile-custom':'Custom / bartender-only'};
 const extraGuestRates={'mobile-oahu':10,'mobile-maui':12,'mobile-big-island':15,'mobile-custom':0};
+const packageMeta={
+ 'mobile-oahu':{name:'Oahu Package',base:1500,detail:'Classic beer, champagne and wine · up to 100 guests · 4 hours included'},
+ 'mobile-maui':{name:'Maui Package',base:2000,detail:'Recommended start · adds 2 signature drinks · up to 100 guests · 4 hours included'},
+ 'mobile-big-island':{name:'Big Island Package',base:2500,detail:'Premium · adds mixed cocktail service · up to 100 guests · 4 hours included'},
+ 'mobile-custom':{name:'Custom / bartender-only',base:0,detail:'Custom service scope · final pricing confirmed with your proposal'}
+};
 const money=v=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}).format(Number(v||0));
 const val=(name,fallback=0)=>{const el=form.elements[name];const n=Number(el?.value);return Number.isFinite(n)?n:fallback};
 const checked=name=>Boolean(form.elements[name]?.checked);
@@ -20,6 +26,13 @@ function calculate(){
  const guestRate=extraGuestRates[packageId]||0;
  const extraGuestCount=Math.max(0,guests-100);
  const extraGuests=extraGuestCount*guestRate;
+ const guestGuidance=form.querySelector('[data-guest-guidance]');
+ if(guestGuidance){
+  if(!packageChosen)guestGuidance.textContent='Up to 100 guests are included in every package. Additional guests: Oahu $10 · Maui $12 · Big Island $15.';
+  else if(packageId==='mobile-custom')guestGuidance.textContent='Guest-count pricing for custom / bartender-only service is confirmed with your proposal.';
+  else if(extraGuestCount>0)guestGuidance.textContent=extraGuestCount+' guests above the included 100 × '+money(guestRate)+' = '+money(extraGuests)+' additional guest service.';
+  else guestGuidance.textContent=guests+' '+(guests===1?'guest is':'guests are')+' within the 100 guests included in this package.';
+ }
  const extraHours=Math.max(0,hours-4)*200;
  const labor=hours*bartenders*65;
  const excessRoundTripMiles=Math.max(0,oneWayMiles-20)*2;
@@ -80,13 +93,45 @@ form.querySelectorAll('.quote-calculator select,.quote-calculator input[type="ch
 
 const packageCards=[...document.querySelectorAll('.package-grid .package')];
 const packageIdFromCard=card=>String(card.dataset.packageId||'');
-function syncPackageCards(){const active=String(form.elements.package.value||'');packageCards.forEach(card=>{const selected=packageIdFromCard(card)===active;card.classList.toggle('is-selected',selected);const control=card.querySelector('.package-request');if(control)control.setAttribute('aria-pressed',selected?'true':'false')})}
 const quoteCalculator=form.querySelector('.quote-calculator');
+const packageHandoff=form.querySelector('[data-package-handoff]');
+const handoffName=form.querySelector('[data-package-handoff-name]');
+const handoffDetail=form.querySelector('[data-package-handoff-detail]');
 const reduceMotion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
-function selectPackage(id,{scroll=true}={}){if(!id||!packagePrices.hasOwnProperty(id))return;form.elements.package.value=id;form.elements.package.dispatchEvent(new Event('change',{bubbles:true}));syncPackageCards();if(scroll&&quoteCalculator){requestAnimationFrame(()=>quoteCalculator.scrollIntoView({behavior:reduceMotion()?'auto':'smooth',block:'center'}))}}
+function syncPackageCards(){const active=String(form.elements.package.value||'');packageCards.forEach(card=>{const selected=packageIdFromCard(card)===active;card.classList.toggle('is-selected',selected);const control=card.querySelector('.package-request');if(control)control.setAttribute('aria-pressed',selected?'true':'false')})}
+function syncPackageHandoff(){
+ const id=String(form.elements.package.value||'');
+ const meta=packageMeta[id];
+ if(!packageHandoff||!handoffName||!handoffDetail)return;
+ packageHandoff.classList.toggle('has-package',Boolean(meta));
+ handoffName.textContent=meta?meta.name+' selected':'Choose a package above or from the menu below.';
+ handoffDetail.textContent=meta?meta.detail:'Every package includes up to 100 guests and four hours of service.';
+}
+function animateQuoteArrival(){
+ if(!quoteCalculator)return;
+ quoteCalculator.classList.remove('is-arriving');
+ void quoteCalculator.offsetWidth;
+ quoteCalculator.classList.add('is-arriving');
+ window.setTimeout(()=>quoteCalculator.classList.remove('is-arriving'),850);
+}
+function selectPackage(id,{scroll=true}={}){
+ if(!id||!packagePrices.hasOwnProperty(id))return;
+ form.elements.package.value=id;
+ form.elements.package.dispatchEvent(new Event('change',{bubbles:true}));
+ syncPackageCards();
+ syncPackageHandoff();
+ if(scroll&&quoteCalculator){
+  animateQuoteArrival();
+  requestAnimationFrame(()=>{
+   quoteCalculator.scrollIntoView({behavior:reduceMotion()?'auto':'smooth',block:'start'});
+   if(reduceMotion())document.getElementById('quote-calculator-heading')?.focus({preventScroll:true});
+  });
+ }
+}
 packageCards.forEach(card=>{const id=packageIdFromCard(card),control=card.querySelector('.package-request');if(!id)return;card.addEventListener('click',event=>{if(event.target.closest('button'))return;selectPackage(id)});if(control)control.addEventListener('click',()=>selectPackage(id))});
-form.elements.package.addEventListener('change',syncPackageCards);
-calculate();syncPackageCards();
+document.querySelectorAll('[data-select-package]').forEach(control=>control.addEventListener('click',()=>selectPackage(String(control.dataset.selectPackage||''))));
+form.elements.package.addEventListener('change',()=>{syncPackageCards();syncPackageHandoff()});
+calculate();syncPackageCards();syncPackageHandoff();
 let submitting=false;
 let turnstileToken='';
 let turnstileWidgetId=null;

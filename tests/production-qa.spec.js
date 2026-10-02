@@ -258,6 +258,49 @@ test('package cards keep a shared baseline, equal height and internal rhythm', a
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2), 'package section does not create horizontal overflow').toBeTruthy();
 });
 
+test('homepage luxury pass and package comparison are structurally complete', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'networkidle' });
+
+  await expect(page.locator('body')).toHaveClass(/home/);
+  await expect(page.locator('.hero-proof span')).toHaveCount(3);
+  await expect(page.locator('.package-recommended')).toContainText('Recommended start');
+  await expect(page.locator('[data-package-comparison]')).toBeVisible();
+  await expect(page.locator('.package-table tbody tr')).toHaveCount(23);
+  await expect(page.locator('.package-table')).toContainText('Additional guests');
+  await expect(page.locator('.package-table')).toContainText('$10 / guest');
+  await expect(page.locator('.package-table')).toContainText('$12 / guest');
+  await expect(page.locator('.package-table')).toContainText('$15 / guest');
+  await expect(page.locator('.package-table')).toContainText('Mixed cocktail service');
+  await expect(page.locator('.package-table')).toContainText('Planning consultation & alcohol shopping list');
+  await expect(page.locator('.package-table')).toContainText('$65 / hour / bartender');
+  await expect(page.locator('.faq')).toContainText('$2.00 per mile');
+  await expect(page.locator('.faq')).toContainText('$150 long-distance logistics fee');
+});
+
+test('pricing conversion handoff and guest guidance stay synchronized', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'networkidle' });
+
+  const form=page.locator('[data-mobile-quote-form]');
+  const select=form.locator('select[name="package"]');
+  const guidance=form.locator('[data-guest-guidance]');
+  const handoff=form.locator('[data-package-handoff]');
+
+  await page.locator('[data-package-id="mobile-maui"] .package-request').click();
+  await expect(select).toHaveValue('mobile-maui');
+  await expect(handoff).toContainText('Maui Package selected');
+  await expect(handoff).toContainText('Recommended start');
+  await expect(guidance).toContainText('100 guests are within the 100 guests included');
+
+  await form.locator('input[name="guest-count"]').fill('125');
+  await expect(guidance).toContainText('25 guests above the included 100');
+  await expect(guidance).toContainText('$300.00');
+
+  await page.locator('[data-select-package="mobile-oahu"]').click();
+  await expect(select).toHaveValue('mobile-oahu');
+  await expect(handoff).toContainText('Oahu Package selected');
+  await expect(guidance).toContainText('$250.00');
+});
+
 test('package comparison communicates exactly what each tier adds', async ({ page }) => {
   await page.goto('/', { waitUntil: 'networkidle' });
 
@@ -505,7 +548,7 @@ const fs = require('fs');
 const visualBaselineDir = 'tests/production-qa.spec.js-snapshots';
 
 test.describe('visual regression @visual', () => {
-  const baselineVersion = 'v3.3';
+  const baselineVersion = 'v3.4';
   const baselineMarker = visualBaselineDir + '/.baseline-version';
   const approved = fs.existsSync(visualBaselineDir) && fs.existsSync(baselineMarker) && fs.readFileSync(baselineMarker,'utf8').trim() === baselineVersion;
   test.skip(!approved && process.env.BOOTSTRAP_VISUAL !== '1', 'Approved visual baselines have not been bootstrapped for ' + baselineVersion + '.');
