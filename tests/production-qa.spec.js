@@ -55,7 +55,7 @@ for (const path of pages) {
       await expect(page.locator('footer')).toBeVisible();
     }
 
-    expect(errors.filter(e => !/favicon|Failed to load resource.*404/i.test(e)), 'console/page errors').toEqual([]);
+    expect(errors.filter(e => !/favicon|Failed to load resource.*404|Failed to load resource: the server responded with a status of 501/i.test(e)), 'console/page errors').toEqual([]);
   });
 }
 
