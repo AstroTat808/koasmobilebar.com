@@ -181,7 +181,7 @@ test('internal links return non-error responses', async ({ page, request }) => {
 });
 
 test('package cards keep a shared baseline, equal height and internal rhythm', async ({ page }) => {
-  await page.goto('/', { waitUntil: 'networkidle' });
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
 
   const cards = page.locator('.package-grid > .package');
   await expect(cards).toHaveCount(3);
@@ -269,7 +269,7 @@ test('service event and service-area landing pages share the luxury conversion s
 });
 
 test('comparison guest count updates all package subtotals and calculator guest count', async ({ page }) => {
-  await page.goto('/',{waitUntil:'networkidle'});
+  await page.goto('/',{waitUntil: 'domcontentloaded'});
   const compare=page.locator('[data-compare-guest-count]');
   await expect(compare).toBeVisible();
   await compare.fill('125');
@@ -304,7 +304,7 @@ test('conversion events distinguish package-card and comparison interactions', a
 });
 
 test('homepage luxury pass and package comparison are structurally complete', async ({ page }) => {
-  await page.goto('/', { waitUntil: 'networkidle' });
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
 
   await expect(page.locator('body')).toHaveClass(/home/);
   await expect(page.locator('.hero-proof span')).toHaveCount(3);
@@ -323,7 +323,7 @@ test('homepage luxury pass and package comparison are structurally complete', as
 });
 
 test('pricing conversion handoff and guest guidance stay synchronized', async ({ page }) => {
-  await page.goto('/', { waitUntil: 'networkidle' });
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
 
   const form=page.locator('[data-mobile-quote-form]');
   const select=form.locator('select[name="package"]');
@@ -347,7 +347,7 @@ test('pricing conversion handoff and guest guidance stay synchronized', async ({
 });
 
 test('package comparison communicates exactly what each tier adds', async ({ page }) => {
-  await page.goto('/', { waitUntil: 'networkidle' });
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
 
   await expect(page.locator('[data-package-id="mobile-oahu"] [data-package-upgrade="foundation"]')).toContainText('Foundation menu');
   await expect(page.locator('[data-package-id="mobile-oahu"] [data-package-upgrade="foundation"]')).toContainText('Beer · champagne · wine');
