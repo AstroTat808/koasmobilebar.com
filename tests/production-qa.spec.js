@@ -310,7 +310,7 @@ test('homepage luxury pass and package comparison are structurally complete', as
   await expect(page.locator('.hero-proof span')).toHaveCount(3);
   await expect(page.locator('.package-recommended')).toContainText('Recommended start');
   await expect(page.locator('[data-package-comparison]')).toBeVisible();
-  await expect(page.locator('.package-table tbody tr')).toHaveCount(23);
+  await expect(page.locator('.package-table tbody tr')).toHaveCount(26);
   await expect(page.locator('.package-table')).toContainText('Additional guests');
   await expect(page.locator('.package-table')).toContainText('$10 / guest');
   await expect(page.locator('.package-table')).toContainText('$12 / guest');
@@ -357,6 +357,14 @@ test('package comparison communicates exactly what each tier adds', async ({ pag
 
   await expect(page.locator('[data-package-id="mobile-big-island"] [data-package-upgrade="mixed-cocktails"]')).toContainText('Adds over Maui');
   await expect(page.locator('[data-package-id="mobile-big-island"] [data-package-upgrade="mixed-cocktails"]')).toContainText('Mixed cocktail service');
+  await expect(page.locator('[data-package-id="mobile-big-island"] [data-package-upgrade="mixed-cocktails"]')).toContainText('premium menu curation');
+  await expect(page.locator('[data-package-id="mobile-big-island"] .premium-perk')).toHaveCount(3);
+  await expect(page.locator('[data-package-id="mobile-big-island"]')).toContainText('Enhanced garnish presentation');
+  await expect(page.locator('[data-package-id="mobile-big-island"]')).toContainText('zero-proof signature companion');
+  await expect(page.locator('[data-package-id="mobile-big-island"]')).toContainText('Custom cocktail naming + menu curation');
+  await expect(page.locator('.package-table')).toContainText('Enhanced garnish presentation');
+  await expect(page.locator('.package-table')).toContainText('Zero-proof signature companion');
+  await expect(page.locator('.package-table')).toContainText('Custom cocktail naming + menu curation');
 
   const foundation = page.locator('.package-foundation');
   await expect(foundation).toContainText('Included with every package');
@@ -593,7 +601,7 @@ const fs = require('fs');
 const visualBaselineDir = 'tests/production-qa.spec.js-snapshots';
 
 test.describe('visual regression @visual', () => {
-  const baselineVersion = 'v3.5';
+  const baselineVersion = 'v3.6';
   const baselineMarker = visualBaselineDir + '/.baseline-version';
   const approved = fs.existsSync(visualBaselineDir) && fs.existsSync(baselineMarker) && fs.readFileSync(baselineMarker,'utf8').trim() === baselineVersion;
   test.skip(!approved && process.env.BOOTSTRAP_VISUAL !== '1', 'Approved visual baselines have not been bootstrapped for ' + baselineVersion + '.');
