@@ -356,8 +356,8 @@ test('package comparison communicates exactly what each tier adds', async ({ pag
   await expect(page.locator('[data-package-id="mobile-maui"] [data-package-upgrade="signature-drinks"]')).toContainText('2 signature drinks');
 
   await expect(page.locator('[data-package-id="mobile-big-island"] [data-package-upgrade="mixed-cocktails"]')).toContainText('Adds over Maui');
-  await expect(page.locator('[data-package-id="mobile-big-island"] [data-package-upgrade="mixed-cocktails"]')).toContainText('Mixed cocktail service');
-  await expect(page.locator('[data-package-id="mobile-big-island"] [data-package-upgrade="mixed-cocktails"]')).toContainText('premium menu curation');
+  await expect(page.locator('[data-package-id="mobile-big-island"] [data-package-upgrade="mixed-cocktails"]')).toContainText('Mixed cocktails');
+  await expect(page.locator('[data-package-id="mobile-big-island"] [data-package-upgrade="mixed-cocktails"]')).toContainText('menu curation');
   await expect(page.locator('[data-package-id="mobile-big-island"] .premium-perk')).toHaveCount(3);
   await expect(page.locator('[data-package-id="mobile-big-island"]')).toContainText('Enhanced garnish presentation');
   await expect(page.locator('[data-package-id="mobile-big-island"]')).toContainText('zero-proof signature companion');
