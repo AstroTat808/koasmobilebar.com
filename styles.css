@@ -818,6 +818,23 @@ html,body{max-width:100%;overflow-x:hidden}
 .package-grid>.package.featured li.is-upgrade:before{
   color:#f0c59a
 }
+.package-grid>.package.featured li.premium-perk{
+  position:relative;
+  list-style:none;
+  margin-left:-18px;
+  padding:7px 10px 7px 30px;
+  border-left:1px solid rgba(240,197,154,.38);
+  background:linear-gradient(90deg,rgba(224,173,129,.075),transparent 78%);
+  font-weight:680
+}
+.package-grid>.package.featured li.premium-perk:before{
+  content:"✦";
+  position:absolute;
+  left:10px;
+  top:7px;
+  color:#f0c59a;
+  font-size:.72em
+}
 .package-grid>.package .package-request{
   padding-top:8px
 }

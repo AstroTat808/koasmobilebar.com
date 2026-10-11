@@ -24,7 +24,7 @@ jobs:
       - name: Detect approved baselines
         id: baselines
         run: |
-          if [ -f tests/production-qa.spec.js-snapshots/.baseline-version ] && [ "$(cat tests/production-qa.spec.js-snapshots/.baseline-version)" = "v3.5" ]; then
+          if [ -f tests/production-qa.spec.js-snapshots/.baseline-version ] && [ "$(cat tests/production-qa.spec.js-snapshots/.baseline-version)" = "v3.6" ]; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
@@ -56,7 +56,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          printf 'v3.5\n' > tests/production-qa.spec.js-snapshots/.baseline-version
+          printf 'v3.6\n' > tests/production-qa.spec.js-snapshots/.baseline-version
           git add tests/production-qa.spec.js-snapshots
           git commit -m "Refresh isolated component visual baselines"
           git push origin HEAD:main
@@ -99,6 +99,7 @@ jobs:
             if grep -Fq 'Homepage luxury conversion pass — 2026-10-01' /tmp/live-styles.css \
               && grep -Fq 'Landing-page luxury conversion system — 2026-10-02' /tmp/live-styles.css \
               && grep -Fq 'data-package-comparison' /tmp/live-home.html \
+              && grep -Fq 'Enhanced garnish presentation' /tmp/live-home.html \
               && grep -Fq 'data-compare-guest-count' /tmp/live-app.js \
               && grep -Fq 'class="luxury-landing"' /tmp/live-birthday.html \
               && grep -Fq 'data-landing-proof' /tmp/live-hilo.html \

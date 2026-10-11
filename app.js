@@ -26,7 +26,7 @@ const extraGuestRates={'mobile-oahu':10,'mobile-maui':12,'mobile-big-island':15,
 const packageMeta={
  'mobile-oahu':{name:'Oahu Package',base:1500,detail:'Classic beer, champagne and wine · up to 100 guests · 4 hours included'},
  'mobile-maui':{name:'Maui Package',base:2000,detail:'Recommended start · adds 2 signature drinks · up to 100 guests · 4 hours included'},
- 'mobile-big-island':{name:'Big Island Package',base:2500,detail:'Premium · adds mixed cocktail service · up to 100 guests · 4 hours included'},
+ 'mobile-big-island':{name:'Big Island Package',base:2500,detail:'Premium · mixed cocktails + enhanced garnish presentation + zero-proof signature companion + custom menu curation · up to 100 guests · 4 hours included'},
  'mobile-custom':{name:'Custom / bartender-only',base:0,detail:'Custom service scope · final pricing confirmed with your proposal'}
 };
 const money=v=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}).format(Number(v||0));
